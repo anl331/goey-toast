@@ -79,7 +79,7 @@ export interface GoeyPromiseData<T> {
 export type GoeyToastPhase = 'loading' | 'default' | 'success' | 'error' | 'warning' | 'info'
 
 export interface GoeyToasterProps {
-  position?: ToasterProps['position']
+  position?: ToasterProps['position'] | 'center'
   duration?: number
   gap?: number
   offset?: number | string

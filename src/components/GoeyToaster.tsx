@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Toaster } from 'sonner'
+import { Toaster, type ToasterProps } from 'sonner'
 import type { GoeyToasterProps } from '../types'
 import { setGoeyPosition, setGoeySpring, setGoeyBounce } from '../context'
 
@@ -53,9 +53,11 @@ export function GoeyToaster({
     }
   }, [])
 
+  const sonnerPosition = position === 'center' ? 'top-center' : position
+
   return (
     <Toaster
-      position={position}
+      position={sonnerPosition as ToasterProps['position']}
       duration={duration}
       gap={gap}
       offset={offset}
@@ -66,6 +68,7 @@ export function GoeyToaster({
       richColors={richColors}
       visibleToasts={visibleToasts}
       dir={dir}
+      className={position === 'center' ? 'goey-toaster-center' : ''}
     />
   )
 }

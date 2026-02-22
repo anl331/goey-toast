@@ -17,6 +17,45 @@
   width: fit-content !important;
 }
 
+/* Vertical and horizontal centering for the 'center' position */
+.goey-toaster-center {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  bottom: auto !important;
+  right: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  width: 100% !important;
+  max-width: 420px !important;
+  margin: 0 !important;
+  padding: 0 20px !important;
+  box-sizing: border-box !important;
+}
+
+/* For sonner's internal list to understand center position */
+.goey-toaster-center>[data-sonner-toaster] {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.goey-toaster-center [data-sonner-toast] {
+  margin: 0 auto !important;
+  position: relative !important;
+}
+
+@media (max-width: 600px) {
+  .goey-toaster-center {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+}
+
 /* Style detection marker — used by GoeyToaster to verify CSS is loaded */
 [data-goey-toast-css] { --goey-toast: 1; }
 

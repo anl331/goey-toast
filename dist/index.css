@@ -1,0 +1,333 @@
+/* src/components/GooeyToast.css */
+.gooey-spinnerSpin {
+  animation: gooey-spin 1s linear infinite;
+}
+@keyframes gooey-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+[data-sonner-toast][data-x-position=center] {
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: fit-content !important;
+}
+[data-gooey-toast-css] {
+  --gooey-toast: 1;
+}
+[data-sonner-toast][data-expanded=true] {
+  transition:
+    transform 0.15s,
+    opacity 0.4s,
+    height 0.15s,
+    box-shadow 0.2s !important;
+}
+.gooey-wrapper {
+  pointer-events: auto;
+  cursor: default;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    sans-serif;
+  position: relative;
+  width: fit-content;
+}
+.gooey-blobSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.06)) drop-shadow(0 1px 4px rgba(0, 0, 0, 0.04));
+}
+.gooey-content {
+  position: relative;
+  z-index: 1;
+  transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.gooey-contentCompact {
+  padding: 7px 10px 7px 10px;
+}
+.gooey-contentExpanded {
+  padding: 7px 10px 16px 10px;
+  min-width: 300px;
+  max-width: 380px;
+}
+.gooey-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+.gooey-iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  line-height: 0;
+}
+.gooey-title {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: inherit;
+  padding: 0 4px 0 2px;
+}
+.gooey-titleDefault {
+  color: #555;
+}
+.gooey-titleSuccess {
+  color: #4CAF50;
+}
+.gooey-titleError {
+  color: #E53935;
+}
+.gooey-titleWarning {
+  color: #C49000;
+}
+.gooey-titleInfo {
+  color: #1E88E5;
+}
+.gooey-titleLoading {
+  color: #555;
+}
+.gooey-timestamp {
+  font-size: 11px;
+  font-weight: 400;
+  color: #999;
+  white-space: nowrap;
+  line-height: 1;
+  padding-left: 6px;
+}
+.gooey-description {
+  font-size: 13px;
+  font-weight: 400;
+  color: #444;
+  line-height: 1.55;
+  margin-top: 16px;
+  overflow: hidden;
+}
+.gooey-actionWrapper {
+  margin-top: 12px;
+  overflow: hidden;
+}
+.gooey-actionButton {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+.gooey-actionButton:focus:not(:focus-visible) {
+  outline: none;
+}
+.gooey-actionButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.gooey-actionDefault {
+  background: #E8E8E8;
+  color: #555;
+}
+.gooey-actionDefault:hover {
+  background: #DCDCDC;
+}
+.gooey-actionDefault:active {
+  background: #D0D0D0;
+}
+.gooey-actionSuccess {
+  background: #C8E6C9;
+  color: #4CAF50;
+}
+.gooey-actionSuccess:hover {
+  background: #A5D6A7;
+}
+.gooey-actionSuccess:active {
+  background: #81C784;
+}
+.gooey-actionError {
+  background: #FFCDD2;
+  color: #E53935;
+}
+.gooey-actionError:hover {
+  background: #EF9A9A;
+}
+.gooey-actionError:active {
+  background: #E57373;
+}
+.gooey-actionWarning {
+  background: #FFECB3;
+  color: #C49000;
+}
+.gooey-actionWarning:hover {
+  background: #FFE082;
+}
+.gooey-actionWarning:active {
+  background: #FFD54F;
+}
+.gooey-actionInfo {
+  background: #BBDEFB;
+  color: #1E88E5;
+}
+.gooey-actionInfo:hover {
+  background: #90CAF9;
+}
+.gooey-actionInfo:active {
+  background: #64B5F6;
+}
+.gooey-progressWrapper {
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 2px;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.06);
+}
+.gooey-progressBar {
+  height: 100%;
+  border-radius: 2px;
+  transform-origin: left center;
+  animation: gooey-progress-shrink var(--gooey-progress-duration, 4000ms) linear forwards;
+  animation-play-state: running;
+}
+.gooey-progressPaused .gooey-progressBar {
+  animation-play-state: paused;
+}
+@keyframes gooey-progress-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.gooey-progressDefault {
+  background: #999;
+}
+.gooey-progressSuccess {
+  background: #4CAF50;
+}
+.gooey-progressError {
+  background: #E53935;
+}
+.gooey-progressWarning {
+  background: #C49000;
+}
+.gooey-progressInfo {
+  background: #1E88E5;
+}
+.gooey-wrapper[data-theme=dark] .gooey-blobSvg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+}
+.gooey-wrapper[data-theme=dark] .gooey-titleDefault {
+  color: #ccc;
+}
+.gooey-wrapper[data-theme=dark] .gooey-titleSuccess {
+  color: #66BB6A;
+}
+.gooey-wrapper[data-theme=dark] .gooey-titleError {
+  color: #EF5350;
+}
+.gooey-wrapper[data-theme=dark] .gooey-titleWarning {
+  color: #FFB300;
+}
+.gooey-wrapper[data-theme=dark] .gooey-titleInfo {
+  color: #42A5F5;
+}
+.gooey-wrapper[data-theme=dark] .gooey-titleLoading {
+  color: #ccc;
+}
+.gooey-wrapper[data-theme=dark] .gooey-timestamp {
+  color: #777;
+}
+.gooey-wrapper[data-theme=dark] .gooey-description {
+  color: #e0e0e0;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionDefault {
+  background: #3a3a3a;
+  color: #ccc;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionDefault:hover {
+  background: #444;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionDefault:active {
+  background: #4e4e4e;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionSuccess {
+  background: #1b5e20;
+  color: #66BB6A;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionSuccess:hover {
+  background: #2e7d32;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionSuccess:active {
+  background: #388e3c;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionError {
+  background: #b71c1c;
+  color: #EF5350;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionError:hover {
+  background: #c62828;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionError:active {
+  background: #d32f2f;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionWarning {
+  background: #4a3800;
+  color: #FFB300;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionWarning:hover {
+  background: #5c4600;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionWarning:active {
+  background: #6e5400;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionInfo {
+  background: #0d47a1;
+  color: #42A5F5;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionInfo:hover {
+  background: #1565c0;
+}
+.gooey-wrapper[data-theme=dark] .gooey-actionInfo:active {
+  background: #1976d2;
+}
+.gooey-wrapper[data-theme=dark] .gooey-progressWrapper {
+  background: rgba(255, 255, 255, 0.1);
+}
+.gooey-wrapper[data-theme=dark] .gooey-progressDefault {
+  background: #888;
+}
+.gooey-wrapper[data-theme=dark] .gooey-progressSuccess {
+  background: #66BB6A;
+}
+.gooey-wrapper[data-theme=dark] .gooey-progressError {
+  background: #EF5350;
+}
+.gooey-wrapper[data-theme=dark] .gooey-progressWarning {
+  background: #FFB300;
+}
+.gooey-wrapper[data-theme=dark] .gooey-progressInfo {
+  background: #42A5F5;
+}
+/*# sourceMappingURL=index.css.map */

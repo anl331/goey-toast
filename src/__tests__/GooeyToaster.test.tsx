@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, fireEvent, cleanup } from '@testing-library/react'
 import { GooeyToaster } from '../components/GooeyToaster'
 import { _resetQueue, _getMostRecentActiveId } from '../gooey-toast'
+import { getContainerHovered } from '../context'
 
 vi.mock('sonner', () => ({
   toast: {
@@ -9,9 +10,9 @@ vi.mock('sonner', () => ({
     dismiss: vi.fn(),
   },
   Toaster: ({ children, ...props }: any) => (
-    <div data-testid="sonner-toaster" {...props}>
+    <section data-testid="sonner-toaster" {...props}>
       {children}
-    </div>
+    </section>
   ),
 }))
 
@@ -159,5 +160,54 @@ describe('GooeyToaster closeOnEscape', () => {
     fireEvent.keyDown(document, { key: 'Enter' })
 
     expect(mockDismiss).not.toHaveBeenCalled()
+  })
+})
+
+describe('GooeyToaster container hover detection', () => {
+  const flushFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()))
+  const tick = () => new Promise<void>((r) => setTimeout(r, 0))
+  const mountOl = (section: Element, expanded: boolean) => {
+    const ol = document.createElement('ol')
+    ol.setAttribute('data-sonner-toaster', '')
+    const li = document.createElement('li')
+    li.setAttribute('data-sonner-toast', '')
+    li.setAttribute('data-expanded', String(expanded))
+    ol.appendChild(li)
+    section.appendChild(ol)
+    return { ol, li }
+  }
+
+  afterEach(() => cleanup())
+
+  it('keeps detecting hover after the <ol> is removed and remounted', async () => {
+    render(<GooeyToaster />)
+    const section = document.querySelector('[data-testid="sonner-toaster"]')!
+    expect(getContainerHovered()).toBe(false)
+
+    const first = mountOl(section, false)
+    await flushFrame()
+    first.li.setAttribute('data-expanded', 'true')
+    await tick()
+    expect(getContainerHovered()).toBe(true)
+
+    first.ol.remove()
+    await flushFrame()
+    expect(getContainerHovered()).toBe(false)
+
+    const second = mountOl(section, false)
+    await flushFrame()
+    second.li.setAttribute('data-expanded', 'true')
+    await tick()
+    expect(getContainerHovered()).toBe(true)
+  })
+
+  it('ignores DOM mutations outside the toaster', async () => {
+    render(<GooeyToaster />)
+    const section = document.querySelector('[data-testid="sonner-toaster"]')!
+    const spy = vi.spyOn(section, 'querySelector')
+    document.body.appendChild(document.createElement('div'))
+    await flushFrame()
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 })

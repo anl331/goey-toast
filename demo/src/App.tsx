@@ -1604,8 +1604,9 @@ gooeyToast.success('Saved', { sound: '/sounds/ding.mp3' })       // custom file
 gooeyToast.info('Heads up', { sound: { info: '/sounds/ping.mp3' } })`}</code></pre>
                 <h4 style={{ marginTop: 20, fontSize: 13 }}>Preloading</h4>
                 <p>
-                  Files are fetched and decoded on first use, then cached per URL. Preload them
-                  to make the first play instant.
+                  Files set on <code>GooeyToaster</code> are fetched as soon as it mounts, so the
+                  first toast plays instantly. Files used only per toast are fetched on first use
+                  and cached per URL; preload those to make their first play instant too.
                 </p>
                 <pre><code>{`import { preloadGooeySounds } from 'goey-toast'
 

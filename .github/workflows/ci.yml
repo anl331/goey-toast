@@ -29,3 +29,16 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # engines declares node >=18. The dev toolchain (vitest 4, vite 7, jsdom 28)
+  # needs Node 20+, so the full suite only runs on 20/22 above. The one thing
+  # that executes on Node directly is the CLI, so smoke-test it on 18.
+  cli-node18:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: node bin/cli.mjs print-skill > /dev/null
+      - run: cd "$RUNNER_TEMP" && node "$GITHUB_WORKSPACE/bin/cli.mjs" add-skill --agents

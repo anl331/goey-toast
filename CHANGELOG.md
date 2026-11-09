@@ -13,16 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Public CSS variables for theming (`--gooey-fill`, `--gooey-border`, `--gooey-border-width`, `--gooey-title-*`, `--gooey-description`, `--gooey-timestamp`, `--gooey-action-*`, `--gooey-progress-*`, `--gooey-close-fg`). Declare them anywhere in the tree (`:root`, `.dark`, ...) to override the built-in colors; works with Tailwind / shadcn tokens
 - `forced-colors: active` styles for Windows High Contrast
 - shadcn registry wrapper maps the variables to shadcn tokens, follows the `.dark` class, and defaults to `theme="system"`
+- Optional notification sounds: `GooeyToaster` `sound` (default `false`) and `soundVolume` (0-1, default `0.4`) props, plus a per-toast `sound` option on `GooeyToastOptions` and `GooeyPromiseData` that overrides the global setting. Tones are synthesized with the Web Audio API (no audio files, no dependencies), one per toast type. Promise toasts play the resolved state's sound; `gooeyToast.update` plays the new type's sound when the type changes. Plays are throttled (80ms) and skipped while the tab is hidden.
 
 ### Changed
 
 - Theme is now a subscribable store: already-mounted toasts restyle when the theme changes (previously only toasts created afterwards could pick it up, and the first toast could render before the theme was set)
 - The blob fill/stroke moved from SVG attributes into CSS; `fillColor` / `borderColor` / `borderWidth` now set `--gooey-fill` / `--gooey-border` / `--gooey-border-width` on the toast wrapper (same behavior)
 - Corrected the shadcn registry docs (center positions, theme values, missing props)
-
-### Added
-
-- Optional notification sounds: `GooeyToaster` `sound` (default `false`) and `soundVolume` (0-1, default `0.4`) props, plus a per-toast `sound` option on `GooeyToastOptions` and `GooeyPromiseData` that overrides the global setting. Tones are synthesized with the Web Audio API (no audio files, no dependencies), one per toast type. Promise toasts play the resolved state's sound; `gooeyToast.update` plays the new type's sound when the type changes. Plays are throttled (80ms) and skipped while the tab is hidden.
+- Container-hover detection now observes only Sonner's toaster section instead of all of `document.body`, so DOM changes elsewhere in the app no longer trigger lookups
+- CI: GitHub Actions runs typecheck, tests and build on Node 20 and 22
 
 ### Fixed
 

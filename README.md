@@ -185,7 +185,7 @@ Options passed as the second argument to `gooeyToast()` and type-specific method
 | `bounce`      | `number`             | Spring intensity from `0.05` (subtle) to `0.8` (dramatic), default `0.4` |
 | `showTimestamp` | `boolean`         | Show/hide timestamp in toast header/body (default `true`) |
 | `showProgress`| `boolean`            | Show countdown progress bar                      |
-| `sound`       | `boolean`            | Override the global `sound` setting for this toast |
+| `sound`       | `boolean \| string \| Record` | Override the global `sound` setting for this toast |
 | `onDismiss`   | `(id) => void`       | Called when toast is dismissed (any reason)       |
 | `onAutoClose` | `(id) => void`       | Called only on timer-based auto-dismiss           |
 | `preset`      | `AnimationPresetName`| Animation preset (`'smooth'`, `'bouncy'`, `'subtle'`, `'snappy'`) |
@@ -244,7 +244,7 @@ Props for the `<GooeyToaster />` component.
 | `dir`        | `'ltr' \| 'rtl'`                     | `'ltr'`          | Layout direction                              |
 | `swipeToDismiss` | `boolean`                         | `true`           | Enable swipe-to-dismiss on mobile             |
 | `showTimestamp` | `boolean`                         | `true`           | Show/hide timestamp on all toasts globally     |
-| `sound`      | `boolean`                            | `false`          | Play a short tone per toast type              |
+| `sound`      | `boolean \| string \| Record`        | `false`          | `true` = built-in tone, string = audio file URL, object = per-type URLs |
 | `soundVolume` | `number`                            | `0.4`            | Sound volume, `0` to `1`                      |
 
 ### `GooeyPromiseData<T>`
@@ -519,6 +519,27 @@ gooeyToast.success('Saved', { sound: true })
 // Promise toasts play the sound of the resolved state
 gooeyToast.promise(save(), { loading: 'Saving', success: 'Saved', error: 'Failed' })
 ```
+
+#### Custom sound files
+
+`sound` also accepts a URL string (used for every type) or a per-type map. Types missing from the map use the built-in tone, and if a file fails to load or decode the built-in tone plays instead.
+
+```tsx
+// One file for every type
+<GooeyToaster sound="/sounds/notify.mp3" />
+
+// Per-type files (other types use the built-in tone)
+<GooeyToaster sound={{ success: '/sounds/ding.mp3', error: '/sounds/buzz.mp3' }} />
+
+// Per toast
+gooeyToast.success('Saved', { sound: '/sounds/ding.mp3' })
+
+// Optional: fetch and decode files ahead of time
+import { preloadGooeySounds } from 'goey-toast'
+preloadGooeySounds(['/sounds/ding.mp3', '/sounds/buzz.mp3'])
+```
+
+Files are fetched once, decoded with the Web Audio API, cached per URL, and played at `soundVolume`. They must be same-origin or served with CORS headers.
 
 Browsers block audio until the user has interacted with the page; until then sounds are skipped silently. Plays are throttled to one per 80ms and skipped while the tab is hidden.
 

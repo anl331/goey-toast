@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `forced-colors: active` styles for Windows High Contrast
 - shadcn registry wrapper maps the variables to shadcn tokens, follows the `.dark` class, and defaults to `theme="system"`
 - Optional notification sounds: `GooeyToaster` `sound` (default `false`) and `soundVolume` (0-1, default `0.4`) props, plus a per-toast `sound` option on `GooeyToastOptions` and `GooeyPromiseData` that overrides the global setting. Tones are synthesized with the Web Audio API (no audio files, no dependencies), one per toast type. Promise toasts play the resolved state's sound; `gooeyToast.update` plays the new type's sound when the type changes. Plays are throttled (80ms) and skipped while the tab is hidden.
+- Custom sound files: `sound` (global prop and per-toast option) now also accepts a URL string or a per-type map such as `{ success: '/ding.mp3' }`. Files are fetched, decoded and cached once per URL; types missing from a map, and files that fail to load, fall back to the built-in tone. New `preloadGooeySounds(urls)` export and `GooeySoundOption` type.
 
 ### Changed
 

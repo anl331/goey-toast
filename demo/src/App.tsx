@@ -152,6 +152,7 @@ function App() {
   const [bShowTimestamp, setBShowTimestamp] = useState(true)
   const [bCloseButton, setBCloseButton] = useState<boolean | 'top-left' | 'top-right'>(false)
   const [bSound, setBSound] = useState(false)
+  const [bSoundFile, setBSoundFile] = useState(false)
 
   // Close mobile menu on page change
   useEffect(() => {
@@ -212,7 +213,7 @@ function App() {
     const toasterProps = [`position="${bPosition}"`]
     if (bTheme !== 'light') toasterProps.push(`theme="${bTheme}"`)
     if (bShowProgress) toasterProps.push('showProgress')
-    if (bSound) toasterProps.push('sound')
+    if (bSound) toasterProps.push(bSoundFile ? 'sound="/notify.wav"' : 'sound')
     if (!bCloseOnEscape) toasterProps.push('closeOnEscape={false}')
     if (bCloseButton === true) toasterProps.push('closeButton')
     else if (bCloseButton === 'top-left') toasterProps.push('closeButton="top-left"')
@@ -259,7 +260,7 @@ function App() {
         showProgress={bShowProgress}
         closeOnEscape={bCloseOnEscape}
         closeButton={bCloseButton}
-        sound={bSound}
+        sound={bSound ? (bSoundFile ? '/notify.wav' : true) : false}
       />
 
       {/* Header */}
@@ -954,6 +955,17 @@ function App() {
                 </div>
               </div>
 
+              {bSound && (
+                <div className="builder-row">
+                  <div className="toggle-row">
+                    <span className="toggle-row-label">Custom Sound File</span>
+                    <button className="toggle" data-on={bSoundFile} onClick={() => setBSoundFile(!bSoundFile)}>
+                      <div className="toggle-knob" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Close Button */}
               <div className="builder-row">
                 <div className="toggle-row">
@@ -1259,7 +1271,7 @@ gooeyToast.success('Deployed', {
                     <tr><td>swipeToDismiss</td><td>boolean</td><td>true</td><td>Enable swipe-to-dismiss touch gestures on mobile</td></tr>
                     <tr><td>preset</td><td>AnimationPresetName</td><td>—</td><td>Named animation preset (smooth, bouncy, subtle, snappy)</td></tr>
                     <tr><td>showTimestamp</td><td>boolean</td><td>true</td><td>Show/hide timestamp on all toasts globally</td></tr>
-                    <tr><td>sound</td><td>boolean</td><td>false</td><td>Play a short synthesized tone per toast type</td></tr>
+                    <tr><td>sound</td><td>boolean | string | Record</td><td>false</td><td>true = built-in tone per type; string = audio file URL; object = per-type URLs</td></tr>
                     <tr><td>soundVolume</td><td>number</td><td>0.4</td><td>Sound volume from 0 to 1</td></tr>
                   </tbody>
                 </table>

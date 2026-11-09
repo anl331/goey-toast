@@ -1,3 +1,4 @@
+import type { GooeySoundOption } from './types'
 import type { ToasterProps } from 'sonner'
 
 let _position: ToasterProps['position'] = 'bottom-right'
@@ -228,10 +229,10 @@ export function subscribeAnnouncements(cb: AnnounceCb): () => void {
 // ---------------------------------------------------------------------------
 // Notification sounds — opt-in, off by default.
 // ---------------------------------------------------------------------------
-let _sound = false
+let _sound: GooeySoundOption = false
 let _soundVolume = 0.4
 
-export function setGooeySound(enabled: boolean) {
+export function setGooeySound(enabled: GooeySoundOption) {
   _sound = enabled
 }
 

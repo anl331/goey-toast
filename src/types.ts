@@ -108,7 +108,7 @@ export interface GooeyToasterProps {
   duration?: number
   gap?: number
   offset?: number | string
-  theme?: 'light' | 'dark'
+  theme?: 'light' | 'dark' | 'system'
   toastOptions?: Partial<ExternalToast>
   expand?: boolean
   closeButton?: boolean | 'top-left' | 'top-right'

@@ -3,6 +3,7 @@ export const styles = {
   spinnerSpin: 'gooey-spinnerSpin',
   wrapper: 'gooey-wrapper',
   blobSvg: 'gooey-blobSvg',
+  blobPath: 'gooey-blobPath',
   content: 'gooey-content',
   contentCompact: 'gooey-contentCompact',
   contentExpanded: 'gooey-contentExpanded',

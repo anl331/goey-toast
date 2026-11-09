@@ -50,6 +50,99 @@
 
 
 /* ============================================
+   Theme variables
+   --------------------------------------------
+   The library only ever declares PRIVATE vars (--_gooey-*) on the wrapper, per
+   data-theme. Every rule reads  var(--gooey-X, var(--_gooey-X)),  so a consumer
+   can set a PUBLIC --gooey-X anywhere in the tree (:root, .dark, a parent
+   element, ...) and it wins without specificity games. The library never
+   declares the public vars itself.
+
+   Public vars: --gooey-fill, --gooey-border, --gooey-border-width,
+   --gooey-title-{default,success,error,warning,info,loading},
+   --gooey-description, --gooey-timestamp, --gooey-close-fg,
+   --gooey-action-{default,success,error,warning,info}-{bg,fg,bg-hover,bg-active},
+   --gooey-progress-track, --gooey-progress-{default,success,error,warning,info}
+   ============================================ */
+.gooey-wrapper {
+  --_gooey-fill: #ffffff;
+  --_gooey-title-default: #555;
+  --_gooey-title-success: #4CAF50;
+  --_gooey-title-error: #E53935;
+  --_gooey-title-warning: #C49000;
+  --_gooey-title-info: #1E88E5;
+  --_gooey-title-loading: #555;
+  --_gooey-timestamp: #999;
+  --_gooey-description: #444;
+  --_gooey-close-fg: #444;
+  --_gooey-action-default-bg: #E8E8E8;
+  --_gooey-action-default-fg: #555;
+  --_gooey-action-default-bg-hover: #DCDCDC;
+  --_gooey-action-default-bg-active: #D0D0D0;
+  --_gooey-action-success-bg: #C8E6C9;
+  --_gooey-action-success-fg: #4CAF50;
+  --_gooey-action-success-bg-hover: #A5D6A7;
+  --_gooey-action-success-bg-active: #81C784;
+  --_gooey-action-error-bg: #FFCDD2;
+  --_gooey-action-error-fg: #E53935;
+  --_gooey-action-error-bg-hover: #EF9A9A;
+  --_gooey-action-error-bg-active: #E57373;
+  --_gooey-action-warning-bg: #FFECB3;
+  --_gooey-action-warning-fg: #C49000;
+  --_gooey-action-warning-bg-hover: #FFE082;
+  --_gooey-action-warning-bg-active: #FFD54F;
+  --_gooey-action-info-bg: #BBDEFB;
+  --_gooey-action-info-fg: #1E88E5;
+  --_gooey-action-info-bg-hover: #90CAF9;
+  --_gooey-action-info-bg-active: #64B5F6;
+  --_gooey-progress-track: rgba(0, 0, 0, 0.06);
+  --_gooey-progress-default: #999;
+  --_gooey-progress-success: #4CAF50;
+  --_gooey-progress-error: #E53935;
+  --_gooey-progress-warning: #C49000;
+  --_gooey-progress-info: #1E88E5;
+}
+
+.gooey-wrapper[data-theme="dark"] {
+  --_gooey-fill: #1a1a1a;
+  --_gooey-title-default: #ccc;
+  --_gooey-title-success: #66BB6A;
+  --_gooey-title-error: #EF5350;
+  --_gooey-title-warning: #FFB300;
+  --_gooey-title-info: #42A5F5;
+  --_gooey-title-loading: #ccc;
+  --_gooey-timestamp: #777;
+  --_gooey-description: #e0e0e0;
+  --_gooey-close-fg: #e0e0e0;
+  --_gooey-action-default-bg: #3a3a3a;
+  --_gooey-action-default-fg: #ccc;
+  --_gooey-action-default-bg-hover: #444;
+  --_gooey-action-default-bg-active: #4e4e4e;
+  --_gooey-action-success-bg: #1b5e20;
+  --_gooey-action-success-fg: #66BB6A;
+  --_gooey-action-success-bg-hover: #2e7d32;
+  --_gooey-action-success-bg-active: #388e3c;
+  --_gooey-action-error-bg: #b71c1c;
+  --_gooey-action-error-fg: #EF5350;
+  --_gooey-action-error-bg-hover: #c62828;
+  --_gooey-action-error-bg-active: #d32f2f;
+  --_gooey-action-warning-bg: #4a3800;
+  --_gooey-action-warning-fg: #FFB300;
+  --_gooey-action-warning-bg-hover: #5c4600;
+  --_gooey-action-warning-bg-active: #6e5400;
+  --_gooey-action-info-bg: #0d47a1;
+  --_gooey-action-info-fg: #42A5F5;
+  --_gooey-action-info-bg-hover: #1565c0;
+  --_gooey-action-info-bg-active: #1976d2;
+  --_gooey-progress-track: rgba(255, 255, 255, 0.1);
+  --_gooey-progress-default: #888;
+  --_gooey-progress-success: #66BB6A;
+  --_gooey-progress-error: #EF5350;
+  --_gooey-progress-warning: #FFB300;
+  --_gooey-progress-info: #42A5F5;
+}
+
+/* ============================================
    Wrapper — single container for both states
    ============================================ */
 .gooey-wrapper {
@@ -69,6 +162,12 @@
   pointer-events: none;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.06))
           drop-shadow(0 1px 4px rgba(0, 0, 0, 0.04));
+}
+
+.gooey-blobPath {
+  fill: var(--gooey-fill, var(--_gooey-fill));
+  stroke: var(--gooey-border, transparent);
+  stroke-width: var(--gooey-border-width, 1.5px);
 }
 
 /* Content on top of SVG background */
@@ -129,17 +228,17 @@
   padding: 0 4px 2px 2px;
 }
 
-.gooey-titleDefault { color: #555; }
-.gooey-titleSuccess { color: #4CAF50; }
-.gooey-titleError { color: #E53935; }
-.gooey-titleWarning { color: #C49000; }
-.gooey-titleInfo { color: #1E88E5; }
-.gooey-titleLoading { color: #555; }
+.gooey-titleDefault { color: var(--gooey-title-default, var(--_gooey-title-default)); }
+.gooey-titleSuccess { color: var(--gooey-title-success, var(--_gooey-title-success)); }
+.gooey-titleError { color: var(--gooey-title-error, var(--_gooey-title-error)); }
+.gooey-titleWarning { color: var(--gooey-title-warning, var(--_gooey-title-warning)); }
+.gooey-titleInfo { color: var(--gooey-title-info, var(--_gooey-title-info)); }
+.gooey-titleLoading { color: var(--gooey-title-loading, var(--_gooey-title-loading)); }
 
 .gooey-timestamp {
   font-size: 11px;
   font-weight: 400;
-  color: #999;
+  color: var(--gooey-timestamp, var(--_gooey-timestamp));
   white-space: nowrap;
   line-height: 1;
   padding-left: 6px;
@@ -148,7 +247,7 @@
 .gooey-description {
   font-size: 13px;
   font-weight: 400;
-  color: #444;
+  color: var(--gooey-description, var(--_gooey-description));
   line-height: 1.55;
   margin-top: 16px;
   overflow: hidden;
@@ -186,39 +285,39 @@
 }
 
 .gooey-actionDefault {
-  background: #E8E8E8;
-  color: #555;
+  background: var(--gooey-action-default-bg, var(--_gooey-action-default-bg));
+  color: var(--gooey-action-default-fg, var(--_gooey-action-default-fg));
 }
-.gooey-actionDefault:hover { background: #DCDCDC; }
-.gooey-actionDefault:active { background: #D0D0D0; }
+.gooey-actionDefault:hover { background: var(--gooey-action-default-bg-hover, var(--gooey-action-default-bg, var(--_gooey-action-default-bg-hover))); }
+.gooey-actionDefault:active { background: var(--gooey-action-default-bg-active, var(--gooey-action-default-bg, var(--_gooey-action-default-bg-active))); }
 
 .gooey-actionSuccess {
-  background: #C8E6C9;
-  color: #4CAF50;
+  background: var(--gooey-action-success-bg, var(--_gooey-action-success-bg));
+  color: var(--gooey-action-success-fg, var(--_gooey-action-success-fg));
 }
-.gooey-actionSuccess:hover { background: #A5D6A7; }
-.gooey-actionSuccess:active { background: #81C784; }
+.gooey-actionSuccess:hover { background: var(--gooey-action-success-bg-hover, var(--gooey-action-success-bg, var(--_gooey-action-success-bg-hover))); }
+.gooey-actionSuccess:active { background: var(--gooey-action-success-bg-active, var(--gooey-action-success-bg, var(--_gooey-action-success-bg-active))); }
 
 .gooey-actionError {
-  background: #FFCDD2;
-  color: #E53935;
+  background: var(--gooey-action-error-bg, var(--_gooey-action-error-bg));
+  color: var(--gooey-action-error-fg, var(--_gooey-action-error-fg));
 }
-.gooey-actionError:hover { background: #EF9A9A; }
-.gooey-actionError:active { background: #E57373; }
+.gooey-actionError:hover { background: var(--gooey-action-error-bg-hover, var(--gooey-action-error-bg, var(--_gooey-action-error-bg-hover))); }
+.gooey-actionError:active { background: var(--gooey-action-error-bg-active, var(--gooey-action-error-bg, var(--_gooey-action-error-bg-active))); }
 
 .gooey-actionWarning {
-  background: #FFECB3;
-  color: #C49000;
+  background: var(--gooey-action-warning-bg, var(--_gooey-action-warning-bg));
+  color: var(--gooey-action-warning-fg, var(--_gooey-action-warning-fg));
 }
-.gooey-actionWarning:hover { background: #FFE082; }
-.gooey-actionWarning:active { background: #FFD54F; }
+.gooey-actionWarning:hover { background: var(--gooey-action-warning-bg-hover, var(--gooey-action-warning-bg, var(--_gooey-action-warning-bg-hover))); }
+.gooey-actionWarning:active { background: var(--gooey-action-warning-bg-active, var(--gooey-action-warning-bg, var(--_gooey-action-warning-bg-active))); }
 
 .gooey-actionInfo {
-  background: #BBDEFB;
-  color: #1E88E5;
+  background: var(--gooey-action-info-bg, var(--_gooey-action-info-bg));
+  color: var(--gooey-action-info-fg, var(--_gooey-action-info-fg));
 }
-.gooey-actionInfo:hover { background: #90CAF9; }
-.gooey-actionInfo:active { background: #64B5F6; }
+.gooey-actionInfo:hover { background: var(--gooey-action-info-bg-hover, var(--gooey-action-info-bg, var(--_gooey-action-info-bg-hover))); }
+.gooey-actionInfo:active { background: var(--gooey-action-info-bg-active, var(--gooey-action-info-bg, var(--_gooey-action-info-bg-active))); }
 
 /* ============================================
    Progress countdown bar
@@ -228,7 +327,7 @@
   overflow: hidden;
   border-radius: 2px;
   height: 3px;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--gooey-progress-track, var(--_gooey-progress-track));
 }
 
 .gooey-progressBar {
@@ -248,14 +347,14 @@
   to { transform: scaleX(0); }
 }
 
-.gooey-progressDefault { background: #999; }
-.gooey-progressSuccess { background: #4CAF50; }
-.gooey-progressError { background: #E53935; }
-.gooey-progressWarning { background: #C49000; }
-.gooey-progressInfo { background: #1E88E5; }
+.gooey-progressDefault { background: var(--gooey-progress-default, var(--_gooey-progress-default)); }
+.gooey-progressSuccess { background: var(--gooey-progress-success, var(--_gooey-progress-success)); }
+.gooey-progressError { background: var(--gooey-progress-error, var(--_gooey-progress-error)); }
+.gooey-progressWarning { background: var(--gooey-progress-warning, var(--_gooey-progress-warning)); }
+.gooey-progressInfo { background: var(--gooey-progress-info, var(--_gooey-progress-info)); }
 
 /* ============================================
-   Dark mode
+   Dark mode (colors come from the theme variables above)
    ============================================ */
 
 .gooey-wrapper[data-theme="dark"] .gooey-blobSvg {
@@ -263,69 +362,10 @@
           drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
 }
 
-.gooey-wrapper[data-theme="dark"] .gooey-titleDefault { color: #ccc; }
-.gooey-wrapper[data-theme="dark"] .gooey-titleSuccess { color: #66BB6A; }
-.gooey-wrapper[data-theme="dark"] .gooey-titleError { color: #EF5350; }
-.gooey-wrapper[data-theme="dark"] .gooey-titleWarning { color: #FFB300; }
-.gooey-wrapper[data-theme="dark"] .gooey-titleInfo { color: #42A5F5; }
-.gooey-wrapper[data-theme="dark"] .gooey-titleLoading { color: #ccc; }
-
-.gooey-wrapper[data-theme="dark"] .gooey-timestamp {
-  color: #777;
-}
-
-.gooey-wrapper[data-theme="dark"] .gooey-description {
-  color: #e0e0e0;
-}
-
-.gooey-wrapper[data-theme="dark"] .gooey-actionDefault {
-  background: #3a3a3a;
-  color: #ccc;
-}
-.gooey-wrapper[data-theme="dark"] .gooey-actionDefault:hover { background: #444; }
-.gooey-wrapper[data-theme="dark"] .gooey-actionDefault:active { background: #4e4e4e; }
-
-.gooey-wrapper[data-theme="dark"] .gooey-actionSuccess {
-  background: #1b5e20;
-  color: #66BB6A;
-}
-.gooey-wrapper[data-theme="dark"] .gooey-actionSuccess:hover { background: #2e7d32; }
-.gooey-wrapper[data-theme="dark"] .gooey-actionSuccess:active { background: #388e3c; }
-
-.gooey-wrapper[data-theme="dark"] .gooey-actionError {
-  background: #b71c1c;
-  color: #EF5350;
-}
-.gooey-wrapper[data-theme="dark"] .gooey-actionError:hover { background: #c62828; }
-.gooey-wrapper[data-theme="dark"] .gooey-actionError:active { background: #d32f2f; }
-
-.gooey-wrapper[data-theme="dark"] .gooey-actionWarning {
-  background: #4a3800;
-  color: #FFB300;
-}
-.gooey-wrapper[data-theme="dark"] .gooey-actionWarning:hover { background: #5c4600; }
-.gooey-wrapper[data-theme="dark"] .gooey-actionWarning:active { background: #6e5400; }
-
-.gooey-wrapper[data-theme="dark"] .gooey-actionInfo {
-  background: #0d47a1;
-  color: #42A5F5;
-}
-.gooey-wrapper[data-theme="dark"] .gooey-actionInfo:hover { background: #1565c0; }
-.gooey-wrapper[data-theme="dark"] .gooey-actionInfo:active { background: #1976d2; }
-
-.gooey-wrapper[data-theme="dark"] .gooey-progressWrapper {
-  background: rgba(255, 255, 255, 0.1);
-}
-.gooey-wrapper[data-theme="dark"] .gooey-progressDefault { background: #888; }
-.gooey-wrapper[data-theme="dark"] .gooey-progressSuccess { background: #66BB6A; }
-.gooey-wrapper[data-theme="dark"] .gooey-progressError { background: #EF5350; }
-.gooey-wrapper[data-theme="dark"] .gooey-progressWarning { background: #FFB300; }
-.gooey-wrapper[data-theme="dark"] .gooey-progressInfo { background: #42A5F5; }
-
 /* ---------------------------------------------------------------------------
    Close button — appears on hover, positioned top-left by default.
    Use closeButton="top-right" on GooeyToaster for top-right placement.
-   Border and background are set inline to match the toast's own styling.
+   Border and background follow the same --gooey-* vars as the toast body.
    --------------------------------------------------------------------------- */
 .gooey-closeButton {
   position: absolute;
@@ -338,9 +378,14 @@
   width: 20px;
   height: 20px;
   padding: 0;
+  box-sizing: border-box;
   border-style: solid;
+  border-width: var(--gooey-border-width, 1.5px);
+  border-color: var(--gooey-border, transparent);
   border-radius: 50%;
-  color: #444;
+  background: var(--gooey-fill, var(--_gooey-fill));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  color: var(--gooey-close-fg, var(--_gooey-close-fg));
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -371,7 +416,32 @@
 .gooey-closeButton:active {
   transform: scale(0.95);
 }
-.gooey-wrapper[data-theme="dark"] .gooey-closeButton {
-  color: #e0e0e0;
-  box-shadow: 0 1px 4px rgba(255, 255, 255, 0.25);
+
+/* ============================================
+   Forced colors (Windows High Contrast)
+   ============================================ */
+@media (forced-colors: active) {
+  .gooey-blobPath {
+    fill: Canvas;
+    stroke: CanvasText;
+    stroke-width: 1.5px;
+  }
+  .gooey-blobSvg { filter: none; }
+  .gooey-title,
+  .gooey-timestamp,
+  .gooey-description { color: CanvasText; }
+  .gooey-actionButton {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+  .gooey-actionButton:focus-visible { outline: 2px solid Highlight; }
+  .gooey-progressWrapper { background: Canvas; border: 1px solid CanvasText; }
+  .gooey-progressBar { background: Highlight; }
+  .gooey-closeButton {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+  }
 }

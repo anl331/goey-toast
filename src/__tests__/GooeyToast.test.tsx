@@ -207,7 +207,7 @@ describe('GooeyToast', () => {
     expect(button.className).toContain('custom-ab')
   })
 
-  it('uses custom fillColor for SVG blob', () => {
+  it('uses custom fillColor via the --gooey-fill var on the wrapper', () => {
     const { container } = render(
       <GooeyToast
         title="Dark"
@@ -216,11 +216,11 @@ describe('GooeyToast', () => {
         fillColor="#1a1a2e"
       />
     )
-    const path = container.querySelector('svg path')!
-    expect(path.getAttribute('fill')).toBe('#1a1a2e')
+    const w = container.querySelector('[data-theme]') as HTMLElement
+    expect(w.style.getPropertyValue('--gooey-fill')).toBe('#1a1a2e')
   })
 
-  it('uses default fillColor when not provided', () => {
+  it('leaves --gooey-fill unset when no fillColor (CSS supplies the themed default)', () => {
     const { container } = render(
       <GooeyToast
         title="Default"
@@ -228,8 +228,8 @@ describe('GooeyToast', () => {
         phase="info"
       />
     )
-    const path = container.querySelector('svg path')!
-    expect(path.getAttribute('fill')).toBe('#ffffff')
+    const w = container.querySelector('[data-theme]') as HTMLElement
+    expect(w.style.getPropertyValue('--gooey-fill')).toBe('')
   })
 
   describe('ARIA accessibility', () => {
@@ -352,22 +352,22 @@ describe('GooeyToast', () => {
   })
 
   describe('dark mode', () => {
-    it('uses dark fillColor (#1a1a1a) when theme is dark and no custom fillColor', () => {
+    it('sets data-theme=dark (CSS applies dark fill) when theme is dark', () => {
       setGooeyTheme('dark')
       const { container } = render(
         <GooeyToast title="Dark" type="info" phase="info" />
       )
-      const path = container.querySelector('svg path')!
-      expect(path.getAttribute('fill')).toBe('#1a1a1a')
+      const w = container.querySelector('[data-theme]') as HTMLElement
+      expect(w.getAttribute('data-theme')).toBe('dark')
     })
 
-    it('uses light fillColor (#ffffff) when theme is light and no custom fillColor', () => {
+    it('sets data-theme=light when theme is light', () => {
       setGooeyTheme('light')
       const { container } = render(
         <GooeyToast title="Light" type="info" phase="info" />
       )
-      const path = container.querySelector('svg path')!
-      expect(path.getAttribute('fill')).toBe('#ffffff')
+      const w = container.querySelector('[data-theme]') as HTMLElement
+      expect(w.getAttribute('data-theme')).toBe('light')
     })
 
     it('respects explicit fillColor even in dark mode', () => {
@@ -375,8 +375,8 @@ describe('GooeyToast', () => {
       const { container } = render(
         <GooeyToast title="Custom" type="info" phase="info" fillColor="#ff0000" />
       )
-      const path = container.querySelector('svg path')!
-      expect(path.getAttribute('fill')).toBe('#ff0000')
+      const w = container.querySelector('[data-theme]') as HTMLElement
+      expect(w.style.getPropertyValue('--gooey-fill')).toBe('#ff0000')
     })
   })
 

@@ -146,7 +146,7 @@ function App() {
   const [bSpring, setBSpring] = useState(true)
   const [bBounce, setBBounce] = useState(0.4)
   const [bPreset, setBPreset] = useState<AnimationPresetName | null>(null)
-  const [bTheme, setBTheme] = useState<'light' | 'dark'>('light')
+  const [bTheme, setBTheme] = useState<'light' | 'dark' | 'system'>('light')
   const [bShowProgress, setBShowProgress] = useState(false)
   const [bCloseOnEscape, setBCloseOnEscape] = useState(true)
   const [bShowTimestamp, setBShowTimestamp] = useState(true)
@@ -897,7 +897,7 @@ function App() {
               <div className="builder-row">
                 <div className="builder-label">Theme</div>
                 <div className="type-pills">
-                  {(['light', 'dark'] as const).map((t) => (
+                  {(['light', 'dark', 'system'] as const).map((t) => (
                     <button
                       key={t}
                       className="type-pill"
@@ -1236,7 +1236,7 @@ gooeyToast.success('Deployed', {
                     <tr><td>duration</td><td>number</td><td>—</td><td>Default display duration (ms)</td></tr>
                     <tr><td>gap</td><td>number</td><td>14</td><td>Gap between stacked toasts</td></tr>
                     <tr><td>offset</td><td>number | string</td><td>'24px'</td><td>Distance from screen edge</td></tr>
-                    <tr><td>theme</td><td>'light' | 'dark'</td><td>'light'</td><td>Color theme</td></tr>
+                    <tr><td>theme</td><td>'light' | 'dark' | 'system'</td><td>'light'</td><td>Color theme</td></tr>
                     <tr><td>spring</td><td>boolean</td><td>true</td><td>Enable spring/bounce animations globally</td></tr>
                     <tr><td>bounce</td><td>number</td><td>0.4</td><td>Spring intensity: 0.05 (subtle) to 0.8 (dramatic)</td></tr>
                     <tr><td>closeOnEscape</td><td>boolean</td><td>true</td><td>Dismiss most recent toast on Escape key press</td></tr>

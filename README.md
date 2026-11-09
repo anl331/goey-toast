@@ -42,7 +42,7 @@ npm install goey-toast
 npx shadcn@latest add https://goey-toast.vercel.app/r/goey-toaster.json
 ```
 
-This installs a thin wrapper component at `components/ui/goey-toaster.tsx` and auto-installs the `goey-toast` and `framer-motion` packages.
+This installs a thin wrapper component at `components/ui/goey-toaster.tsx` and auto-installs the `goey-toast` and `framer-motion` packages. The wrapper maps the `--gooey-*` CSS variables to your shadcn tokens, follows the `.dark` class automatically, and defaults to `theme="system"`. Edit the `GOOEY_SHADCN_CSS` block in the installed file to change the mapping; on older shadcn setups whose tokens are bare HSL triplets, wrap each one with `hsl()` (for example `hsl(var(--popover))`).
 
 ### AI Agents (Skill)
 
@@ -474,6 +474,8 @@ gooeyToast.success('Saved', { showProgress: true })
 <GooeyToaster showProgress />
 ```
 
+The bar starts when the toast expands, pauses on hover, and runs out as the toast collapses. It only shows for toasts with a body (a `description` or an `action`). The per-toast value overrides the global one.
+
 ### Keyboard Shortcuts
 
 Press **Escape** to dismiss the most recent toast. Enabled by default; disable with `closeOnEscape={false}`.
@@ -522,13 +524,27 @@ gooeyToast.promise(save(), { loading: 'Saving', success: 'Saved', error: 'Failed
 
 #### Custom sound files
 
-`sound` also accepts a URL string (used for every type) or a per-type map. Types missing from the map use the built-in tone, and if a file fails to load or decode the built-in tone plays instead.
+`sound` also accepts a URL string (used for every type) or a per-type map. Set it once on `GooeyToaster` in your root layout and every toast in the app uses it, with no per-toast config:
+
+```tsx
+<GooeyToaster
+  sound={{
+    success: '/sounds/success.mp3',
+    error: '/sounds/error.mp3',
+    warning: '/sounds/warning.mp3',
+    info: '/sounds/info.mp3',
+    default: '/sounds/default.mp3',
+  }}
+/>
+```
+
+The `default` key is the fallback for any type not listed: the lookup is `map[type] ?? map.default ?? built-in tone`. If a file fails to load or decode, the built-in tone plays instead.
 
 ```tsx
 // One file for every type
 <GooeyToaster sound="/sounds/notify.mp3" />
 
-// Per-type files (other types use the built-in tone)
+// Per-type files (other types use `default`, then the built-in tone)
 <GooeyToaster sound={{ success: '/sounds/ding.mp3', error: '/sounds/buzz.mp3' }} />
 
 // Per toast

@@ -328,6 +328,23 @@ function App() {
 
           <div className="changelog-entry">
             <div className="changelog-version">
+              <span className="changelog-tag">v0.6.0</span>
+              <span className="changelog-date">Nov 9, 2026</span>
+            </div>
+            <div className="changelog-body">
+              <h4>Dark Mode, Theming &amp; Notification Sounds</h4>
+              <ul>
+                <li><code>theme="system"</code> follows the OS, and theme changes now restyle toasts already on screen (fixes dark mode with next-themes, <a href="https://github.com/anl331/goey-toast/issues/22" target="_blank" rel="noreferrer">#22</a>)</li>
+                <li>Public <code>--gooey-*</code> CSS variables for every color, so Tailwind and shadcn tokens can theme toasts; the shadcn wrapper now follows <code>.dark</code> automatically</li>
+                <li>Optional notification sounds: built-in tones per type, or your own files — set one map on <code>GooeyToaster</code> and every toast uses it</li>
+                <li>Progress bar starts when the toast expands and runs out exactly as it closes</li>
+                <li>Windows High Contrast support, lighter hover detection, and CI on every PR</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="changelog-entry">
+            <div className="changelog-version">
               <span className="changelog-tag">v0.5.0</span>
               <span className="changelog-date">Jun 8, 2026</span>
             </div>
@@ -522,7 +539,7 @@ function App() {
           {/* Hero */}
           <div className="hero">
             <div className="hero-badge">
-              <span /> v0.5.0
+              <span /> v0.6.0
             </div>
             <h1 ref={heroTitleRef} className={heroLanding ? 'hero-title--landing' : ''}>gooey-toast <img src="/mascot.png" alt="mascot" className={`hero-mascot${heroLanding ? ' hero-mascot--landing' : ''}`} /></h1>
             <p className="hero-description">

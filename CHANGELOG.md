@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 0.6.0
+## [0.6.0] - 2026-11-09
 
 ### Added
 
@@ -22,9 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The blob fill/stroke moved from SVG attributes into CSS; `fillColor` / `borderColor` / `borderWidth` now set `--gooey-fill` / `--gooey-border` / `--gooey-border-width` on the toast wrapper (same behavior)
 - Corrected the shadcn registry docs (center positions, theme values, missing props)
 - Container-hover detection now observes only Sonner's toaster section instead of all of `document.body`, so DOM changes elsewhere in the app no longer trigger lookups
-- CI: GitHub Actions runs typecheck, tests and build on Node 20 and 22
+- CI: GitHub Actions runs typecheck, tests and build on Node 20 and 22, plus a CLI smoke test on Node 18
+- Dev dependency security updates (`npm audit fix`); no runtime dependency was affected
+- Agent Skill (`SKILL.md`) documents theming/dark mode, CSS variables, sounds and the progress bar so coding agents set them up correctly
+- Demo site: new docs sections for Theming & Dark Mode, CSS Variables, Notification Sounds and Progress Bar
 
 ### Fixed
+
+- Toasts stayed light when the app switched to dark mode, including with `theme={resolvedTheme}` from next-themes ([#22](https://github.com/anl331/goey-toast/issues/22))
+- Progress bar now starts when the toast expands and runs exactly as long as the toast stays open (it used to start while the toast was still a pill, with the wrong duration on first render)
 
 - `GooeyToaster` `showTimestamp={false}` now correctly hides timestamps on all toasts globally (fixes [#20](https://github.com/anl331/goey-toast/issues/20))
 - Promise toasts respect the global `showTimestamp` setting when no per-toast override is provided

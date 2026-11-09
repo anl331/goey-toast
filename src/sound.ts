@@ -35,26 +35,49 @@ export function _resetSound() {
   _ctx = null
   _lastPlay = -Infinity
   _buffers.clear()
+  _bytes.clear()
+}
+
+// Raw file bytes per URL. Fetching needs no AudioContext, so files can be warmed
+// before any user gesture; decoding happens lazily once a context exists.
+const _bytes = new Map<string, Promise<ArrayBuffer | null>>()
+
+function fetchBytes(url: string): Promise<ArrayBuffer | null> {
+  let p = _bytes.get(url)
+  if (!p) {
+    p = fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : null))
+      .catch(() => null)
+    _bytes.set(url, p)
+  }
+  return p
 }
 
 function loadBuffer(ctx: AudioContext, url: string): Promise<AudioBuffer | null> {
   let p = _buffers.get(url)
   if (!p) {
-    p = fetch(url)
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('bad response'))))
-      .then((data) => ctx.decodeAudioData(data))
+    p = fetchBytes(url)
+      .then((data) => (data ? ctx.decodeAudioData(data) : null))
       .catch(() => null)
     _buffers.set(url, p)
   }
   return p
 }
 
-/** Fetch and decode sound files ahead of time so the first play is instant. Never throws. */
+/**
+ * Fetch sound files ahead of time (and decode them if the AudioContext already exists)
+ * so the first play is instant. Never creates an AudioContext. Never throws.
+ */
 export function preloadGooeySounds(urls: string[]) {
   try {
-    const ctx = getContext()
-    if (ctx) urls.forEach((u) => void loadBuffer(ctx, u))
+    urls.forEach((u) => void (_ctx ? loadBuffer(_ctx, u) : fetchBytes(u)))
   } catch { /* best-effort */ }
+}
+
+/** @internal Warm every URL referenced by a `sound` setting. */
+export function warmGooeySound(setting: GooeySoundOption | undefined) {
+  if (typeof setting === 'string') preloadGooeySounds([setting])
+  else if (setting && typeof setting === 'object') preloadGooeySounds(Object.values(setting).filter(Boolean) as string[])
 }
 
 function playTone(ctx: AudioContext, type: GooeyToastType, volume: number) {
@@ -108,7 +131,7 @@ export function playGooeySound(type: GooeyToastType, override?: GooeySoundOption
     if (ctx.state === 'suspended') ctx.resume().catch(() => {})
 
     const volume = getGooeySoundVolume()
-    const url = typeof setting === 'string' ? setting : typeof setting === 'object' ? setting[type] : undefined
+    const url = typeof setting === 'string' ? setting : typeof setting === 'object' ? (setting[type] ?? setting.default) : undefined
     if (!url) return playTone(ctx, type, volume)
 
     loadBuffer(ctx, url).then((buffer) => {

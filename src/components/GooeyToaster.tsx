@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import type { GooeyToasterProps } from '../types'
 import { animationPresets } from '../presets'
 import { setGooeyPosition, setGooeyDir, setGooeySpring, setGooeyBounce, setGooeyVisibleToasts, setContainerHovered, setGooeySwipeToDismiss, setGooeyCloseOnEscape, setGooeyTheme, setGooeyMaxQueue, setGooeyQueueOverflow, setGooeyShowProgress, setGooeyCloseButton, setGooeyShowTimestamp, setGooeySound, setGooeySoundVolume } from '../context'
+import { warmGooeySound } from '../sound'
 import { gooeyToast, _getMostRecentActiveId } from '../gooey-toast'
 import { AriaLiveAnnouncer } from './AriaLiveAnnouncer'
 
@@ -105,6 +106,7 @@ export function GooeyToaster({
 
   useLayoutEffect(() => {
     setGooeySound(sound)
+    warmGooeySound(sound)
   }, [sound])
 
   useLayoutEffect(() => {

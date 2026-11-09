@@ -508,6 +508,25 @@ gooeyToast.success('Saved', { showTimestamp: false })
 
 Opt-in, off by default. Tones are synthesized with the Web Audio API (no audio files or extra dependencies), one per toast type; loading toasts are silent.
 
+#### Set it once in your root layout
+
+Put your sounds on the root `<GooeyToaster>`; every toast in the app uses them, with no `sound` option per toast:
+
+```tsx
+<GooeyToaster
+  soundVolume={0.5}
+  sound={{
+    success: '/sounds/success.mp3',
+    error: '/sounds/error.mp3',
+    warning: '/sounds/warning.mp3',
+    info: '/sounds/info.mp3',
+    default: '/sounds/default.mp3',
+  }}
+/>
+```
+
+The files are fetched as soon as the toaster mounts (no audio context is created until a toast plays), so the first toast plays its file without delay. A type missing from the map uses the `default` file, and if there is no `default` key it uses the built-in tone.
+
 ```tsx
 // Globally
 <GooeyToaster sound soundVolume={0.5} />
@@ -522,24 +541,24 @@ gooeyToast.promise(save(), { loading: 'Saving', success: 'Saved', error: 'Failed
 
 #### Custom sound files
 
-`sound` also accepts a URL string (used for every type) or a per-type map. Types missing from the map use the built-in tone, and if a file fails to load or decode the built-in tone plays instead.
+`sound` also accepts a URL string (used for every type) or a per-type map. A type missing from the map uses `map.default`, then the built-in tone, and if a file fails to load or decode the built-in tone plays instead.
 
 ```tsx
 // One file for every type
 <GooeyToaster sound="/sounds/notify.mp3" />
 
-// Per-type files (other types use the built-in tone)
+// Per-type files (other types use `default` if given, else the built-in tone)
 <GooeyToaster sound={{ success: '/sounds/ding.mp3', error: '/sounds/buzz.mp3' }} />
 
 // Per toast
 gooeyToast.success('Saved', { sound: '/sounds/ding.mp3' })
 
-// Optional: fetch and decode files ahead of time
+// Optional: fetch files ahead of time (the toaster already does this for its own `sound` prop)
 import { preloadGooeySounds } from 'goey-toast'
 preloadGooeySounds(['/sounds/ding.mp3', '/sounds/buzz.mp3'])
 ```
 
-Files are fetched once, decoded with the Web Audio API, cached per URL, and played at `soundVolume`. They must be same-origin or served with CORS headers.
+Files are fetched once, decoded on first play with the Web Audio API, cached per URL, and played at `soundVolume`. They must be same-origin or served with CORS headers.
 
 Browsers block audio until the user has interacted with the page; until then sounds are skipped silently. Plays are throttled to one per 80ms and skipped while the tab is hidden.
 

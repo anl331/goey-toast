@@ -265,6 +265,55 @@ describe('toast sounds', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1)
     })
 
+    const ALL = { success: '/s.wav', error: '/e.wav', warning: '/w.wav', info: '/i.wav', default: '/d.wav' }
+
+    it('global map on GooeyToaster: every type plays its own file with no per-toast sound', async () => {
+      render(<GooeyToaster sound={ALL} />)
+      expect(ctxCount).toBe(0) // mounting warms files but creates no AudioContext
+      expect(fetchMock.mock.calls.map((c) => c[0]).sort()).toEqual(['/d.wav', '/e.wav', '/i.wav', '/s.wav', '/w.wav'])
+      const fns = { success: gooeyToast.success, error: gooeyToast.error, warning: gooeyToast.warning, info: gooeyToast.info, default: gooeyToast }
+      for (const fn of Object.values(fns)) {
+        tick()
+        gooeyToast.dismiss() // free a queue slot (visibleToasts defaults to 3)
+        fn('hi')
+        await flush()
+      }
+      expect(sources).toHaveLength(5)
+      expect(created).toHaveLength(0)
+      expect(fetchMock).toHaveBeenCalledTimes(5)
+    })
+
+    it('first toast waits for an in-flight fetch instead of falling back to synth', async () => {
+      let release!: () => void
+      fetchMock.mockImplementation(() => new Promise((res) => {
+        release = () => res({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) })
+      }))
+      render(<GooeyToaster sound={{ success: '/s.wav' }} />)
+      gooeyToast.success('first')
+      await flush()
+      expect(created).toHaveLength(0)
+      expect(sources).toHaveLength(0)
+      release()
+      await flush()
+      expect(sources).toHaveLength(1)
+      expect(created).toHaveLength(0)
+    })
+
+    it('map falls back to the default key, then to synth', async () => {
+      setGooeySound({ default: '/d.wav', success: '/s.wav' })
+      playGooeySound('info')
+      await flush()
+      expect(fetchMock).toHaveBeenCalledWith('/d.wav')
+      expect(sources).toHaveLength(1)
+
+      setGooeySound({ success: '/s.wav' })
+      tick()
+      playGooeySound('info')
+      await flush()
+      expect(sources).toHaveLength(1)
+      expect(created).toEqual([587.33])
+    })
+
     it('preloadGooeySounds fetches without playing', async () => {
       preloadGooeySounds(['/p.wav'])
       await flush()

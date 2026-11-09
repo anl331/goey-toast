@@ -147,11 +147,11 @@ function App() {
   const [bBounce, setBBounce] = useState(0.4)
   const [bPreset, setBPreset] = useState<AnimationPresetName | null>(null)
   const [bTheme, setBTheme] = useState<'light' | 'dark' | 'system'>('light')
-  const [bShowProgress, setBShowProgress] = useState(false)
+  const [bShowProgress, setBShowProgress] = useState(true)
   const [bCloseOnEscape, setBCloseOnEscape] = useState(true)
   const [bShowTimestamp, setBShowTimestamp] = useState(true)
   const [bCloseButton, setBCloseButton] = useState<boolean | 'top-left' | 'top-right'>(false)
-  const [bSound, setBSound] = useState(false)
+  const [bSound, setBSound] = useState(true)
   const [bSoundFile, setBSoundFile] = useState(false)
 
   // Close mobile menu on page change
@@ -212,8 +212,9 @@ function App() {
 
     const toasterProps = [`position="${bPosition}"`]
     if (bTheme !== 'light') toasterProps.push(`theme="${bTheme}"`)
-    if (bShowProgress) toasterProps.push('showProgress')
-    if (bSound) toasterProps.push(bSoundFile ? 'sound="/notify.wav"' : 'sound')
+    if (!bShowProgress) toasterProps.push('showProgress={false}')
+    if (!bSound) toasterProps.push('sound={false}')
+    else if (bSoundFile) toasterProps.push('sound="/notify.wav"')
     if (!bCloseOnEscape) toasterProps.push('closeOnEscape={false}')
     if (bCloseButton === true) toasterProps.push('closeButton')
     else if (bCloseButton === 'top-left') toasterProps.push('closeButton="top-left"')
@@ -336,8 +337,8 @@ function App() {
               <ul>
                 <li><code>theme="system"</code> follows the OS, and theme changes now restyle toasts already on screen (fixes dark mode with next-themes, <a href="https://github.com/anl331/goey-toast/issues/22" target="_blank" rel="noreferrer">#22</a>)</li>
                 <li>Public <code>--gooey-*</code> CSS variables for every color, so Tailwind and shadcn tokens can theme toasts; the shadcn wrapper now follows <code>.dark</code> automatically</li>
-                <li>Optional notification sounds: built-in tones per type, or your own files — set one map on <code>GooeyToaster</code> and every toast uses it</li>
-                <li>Progress bar starts when the toast expands and runs out exactly as it closes</li>
+                <li>Notification sounds, on by default: built-in tones per type, or your own files — set one map on <code>GooeyToaster</code> and every toast uses it (<code>{'sound={false}'}</code> to mute)</li>
+                <li>Progress bar now on by default; it starts when the toast expands and runs out exactly as it closes</li>
                 <li>Windows High Contrast support, lighter hover detection, and CI on every PR</li>
               </ul>
             </div>
@@ -1301,7 +1302,7 @@ gooeyToast.success('Deployed', {
                     <tr><td>spring</td><td>boolean</td><td>true</td><td>Enable spring/bounce animations globally</td></tr>
                     <tr><td>bounce</td><td>number</td><td>0.4</td><td>Spring intensity: 0.05 (subtle) to 0.8 (dramatic)</td></tr>
                     <tr><td>closeOnEscape</td><td>boolean</td><td>true</td><td>Dismiss most recent toast on Escape key press</td></tr>
-                    <tr><td>showProgress</td><td>boolean</td><td>false</td><td>Show countdown progress bar on all toasts</td></tr>
+                    <tr><td>showProgress</td><td>boolean</td><td>true</td><td>Show countdown progress bar on all toasts</td></tr>
                     <tr><td>maxQueue</td><td>number</td><td>Infinity</td><td>Maximum number of toasts in the waiting queue</td></tr>
                     <tr><td>queueOverflow</td><td>'drop-oldest' | 'drop-newest'</td><td>'drop-oldest'</td><td>Behavior when queue exceeds maxQueue</td></tr>
                     <tr><td>swipeToDismiss</td><td>boolean</td><td>true</td><td>Enable swipe-to-dismiss touch gestures on mobile</td></tr>
@@ -1309,7 +1310,7 @@ gooeyToast.success('Deployed', {
                     <tr><td>showTimestamp</td><td>boolean</td><td>true</td><td>Show/hide timestamp on all toasts globally</td></tr>
                     <tr><td>closeButton</td><td>boolean | 'top-left' | 'top-right'</td><td>false</td><td>Show close button on hover</td></tr>
                     <tr><td>dir</td><td>'ltr' | 'rtl'</td><td>'ltr'</td><td>Layout direction</td></tr>
-                    <tr><td>sound</td><td>boolean | string | Record</td><td>false</td><td>true = built-in tone per type; string = audio file URL for every type; object = per-type URLs with an optional default fallback</td></tr>
+                    <tr><td>sound</td><td>boolean | string | Record</td><td>true</td><td>true = built-in tone per type; string = audio file URL for every type; object = per-type URLs with an optional default fallback</td></tr>
                     <tr><td>soundVolume</td><td>number</td><td>0.4</td><td>Sound volume from 0 to 1</td></tr>
                   </tbody>
                 </table>
@@ -1571,7 +1572,7 @@ export function Toaster() {
               </div>
               <div className="doc-section-content">
                 <p>
-                  Sounds are opt-in and off by default. Set{' '}
+                  Sounds are on by default (built-in tones; pass <span className="inline-code">{'sound={false}'}</span> to turn them off). Set{' '}
                   <span className="inline-code">sound</span> once on{' '}
                   <span className="inline-code">GooeyToaster</span> in your root layout and every
                   toast in the app uses it, with no per-toast config needed.
@@ -1651,8 +1652,8 @@ preloadGooeySounds(['/sounds/success.mp3', '/sounds/error.mp3'])`}</code></pre>
               </div>
               <div className="doc-section-content">
                 <p>
-                  Show a countdown bar that visualizes how long the toast stays open. Enable it
-                  per toast or globally.
+                  Show a countdown bar that visualizes how long the toast stays open. On by default; turn it off
+                  per toast or globally with <span className="inline-code">{'showProgress={false}'}</span>.
                 </p>
                 <pre><code>{`// Per toast
 gooeyToast.success('Saved', {

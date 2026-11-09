@@ -97,7 +97,8 @@ gooeyToast.dismiss(idOrFilter?)     // dismiss one, by type, or all
 `theme` (`'light'|'dark'|'system'`, default `'light'`), `closeButton`, `showProgress`, `closeOnEscape`,
 `maxQueue`, `queueOverflow` (`'drop-oldest'|'drop-newest'`), `dir` (`'ltr'|'rtl'`),
 `spring`, `bounce`, `preset`, `swipeToDismiss`, `showTimestamp`, `gap`, `offset`,
-`sound` (`boolean | url | per-type map`, default `false`), `soundVolume` (0–1, default `0.4`).
+`sound` (`boolean | url | per-type map`, default `true`), `soundVolume` (0–1, default `0.4`).
+`showProgress` and `sound` are both on by default — pass `false` to opt out.
 
 ## Theming & dark mode
 
@@ -122,13 +123,13 @@ Declare anywhere in the tree (`:root`, `.dark`, ...):
 Prefer these variables over `classNames` for colors. Per-toast `fillColor` /
 `borderColor` still win over the variables.
 
-## Sounds (opt-in)
+## Sounds (on by default)
 
-Set once on the root `<GooeyToaster>`; every toast uses it — don't pass `sound`
-on each toast:
+Built-in tones play by default. To customize, set once on the root
+`<GooeyToaster>`; every toast uses it — don't pass `sound` on each toast:
 
 ```tsx
-<GooeyToaster sound />                         // built-in tone per type
+<GooeyToaster sound={false} />                 // turn sounds off
 <GooeyToaster sound={{                         // custom files (fetched on mount)
   success: '/sounds/success.mp3',
   error: '/sounds/error.mp3',
@@ -189,8 +190,9 @@ gooeyToast.dismiss()                         // all
 - Dark mode: default `theme` is `'light'`. Pass `"system"` or the app's resolved
   theme; don't pass next-themes' raw `theme` value (it can be `"system"` or
   `undefined` before mount — `"system"` is fine, map anything else to light/dark).
-- Sounds are off by default and browsers block audio until the user has
-  interacted with the page; sound files must be same-origin or CORS-enabled.
+- Sounds are on by default; if the user/app wants silent toasts, pass
+  `sound={false}`. Browsers block audio until the user has interacted with the
+  page; sound files must be same-origin or CORS-enabled.
 - Backward-compat aliases exist (`GoeyToaster`, `goeyToast`) for v0.2.x; prefer
   the double-`o` names (`GooeyToaster`, `gooeyToast`).
 

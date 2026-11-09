@@ -238,13 +238,13 @@ Props for the `<GooeyToaster />` component.
 | `preset`     | `AnimationPresetName`                 | --               | Animation preset for all toasts               |
 | `closeOnEscape` | `boolean`                          | `true`           | Dismiss most recent toast on Escape key       |
 | `closeButton`  | `boolean \| 'top-left' \| 'top-right'` | `false`       | Show close button on hover                    |
-| `showProgress` | `boolean`                           | `false`          | Show countdown progress bar on all toasts     |
+| `showProgress` | `boolean`                           | `true`           | Show countdown progress bar on all toasts     |
 | `maxQueue`   | `number`                              | `Infinity`       | Maximum queued toasts                         |
 | `queueOverflow` | `'drop-oldest' \| 'drop-newest'`   | `'drop-oldest'`  | Queue overflow strategy                       |
 | `dir`        | `'ltr' \| 'rtl'`                     | `'ltr'`          | Layout direction                              |
 | `swipeToDismiss` | `boolean`                         | `true`           | Enable swipe-to-dismiss on mobile             |
 | `showTimestamp` | `boolean`                         | `true`           | Show/hide timestamp on all toasts globally     |
-| `sound`      | `boolean \| string \| Record`        | `false`          | `true` = built-in tone, string = audio file URL, object = per-type URLs |
+| `sound`      | `boolean \| string \| Record`        | `true`           | `true` = built-in tone, string = audio file URL, object = per-type URLs |
 | `soundVolume` | `number`                            | `0.4`            | Sound volume, `0` to `1`                      |
 
 ### `GooeyPromiseData<T>`
@@ -465,13 +465,13 @@ gooeyToast.success('Saved', { preset: 'bouncy' })
 
 ### Progress Bar
 
-Show a countdown progress bar on toasts:
+A countdown progress bar is shown on toasts by default. Turn it off per toast or globally:
 
 ```tsx
-gooeyToast.success('Saved', { showProgress: true })
+gooeyToast.success('Saved', { showProgress: false })
 
-// Or enable globally
-<GooeyToaster showProgress />
+// Or disable globally
+<GooeyToaster showProgress={false} />
 ```
 
 The bar starts when the toast expands, pauses on hover, and runs out as the toast collapses. It only shows for toasts with a body (a `description` or an `action`). The per-toast value overrides the global one.
@@ -508,7 +508,7 @@ gooeyToast.success('Saved', { showTimestamp: false })
 
 ### Notification Sounds
 
-Opt-in, off by default. Tones are synthesized with the Web Audio API (no audio files or extra dependencies), one per toast type; loading toasts are silent.
+On by default (built-in tones); pass `sound={false}` to turn them off. Tones are synthesized with the Web Audio API (no audio files or extra dependencies), one per toast type; loading toasts are silent.
 
 #### Set it once in your root layout
 

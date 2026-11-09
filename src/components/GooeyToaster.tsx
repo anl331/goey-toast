@@ -26,9 +26,9 @@ export function GooeyToaster({
   closeOnEscape = true,
   maxQueue = Infinity,
   queueOverflow = 'drop-oldest',
-  showProgress = false,
+  showProgress = true,
   showTimestamp = true,
-  sound = false,
+  sound = true,
   soundVolume = 0.4,
 }: GooeyToasterProps) {
   const presetConfig = preset ? animationPresets[preset] : undefined

@@ -27,6 +27,19 @@ describe('progress bar', () => {
     expect(bar.style.getPropertyValue('--gooey-progress-duration')).toBe('3770ms')
   })
 
+  it('shows by default and can be turned off per toast', () => {
+    const { unmount } = render(
+      <GooeyToast title="Saved" type="success" phase="success" description="Body" />
+    )
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(screen.getByTestId('gooey-progress')).toBeInTheDocument()
+    unmount()
+
+    render(<GooeyToast title="Saved" type="success" phase="success" description="Body" showProgress={false} />)
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(screen.queryByTestId('gooey-progress')).toBeNull()
+  })
+
   it('never renders for a compact toast without a body', () => {
     render(<GooeyToast title="Done" type="success" phase="success" showProgress />)
     act(() => { vi.advanceTimersByTime(1000) })

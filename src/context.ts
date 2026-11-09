@@ -154,7 +154,7 @@ export function getGooeyQueueOverflow() {
   return _queueOverflow
 }
 
-let _showProgress = false
+let _showProgress = true
 
 export function setGooeyShowProgress(show: boolean) {
   _showProgress = show
@@ -229,7 +229,7 @@ export function subscribeAnnouncements(cb: AnnounceCb): () => void {
 // ---------------------------------------------------------------------------
 // Notification sounds — opt-in, off by default.
 // ---------------------------------------------------------------------------
-let _sound: GooeySoundOption = false
+let _sound: GooeySoundOption = true
 let _soundVolume = 0.4
 
 export function setGooeySound(enabled: GooeySoundOption) {

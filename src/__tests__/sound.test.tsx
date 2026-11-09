@@ -85,7 +85,21 @@ afterEach(() => {
 const tick = (ms = 100) => vi.setSystemTime(Date.now() + ms)
 
 describe('toast sounds', () => {
-  it('is off by default', () => {
+  it('is on by default when GooeyToaster is mounted without a sound prop', () => {
+    render(<GooeyToaster />)
+    gooeyToast.success('hi')
+    expect(created).toEqual([659.25, 880])
+    gooeyToast.dismiss()
+  })
+
+  it('is silent with sound={false}', () => {
+    render(<GooeyToaster sound={false} />)
+    gooeyToast.success('hi')
+    expect(created).toHaveLength(0)
+    gooeyToast.dismiss()
+  })
+
+  it('stays silent when the global setting is off', () => {
     gooeyToast.success('hi')
     expect(created).toHaveLength(0)
     expect(ctxCount).toBe(0)

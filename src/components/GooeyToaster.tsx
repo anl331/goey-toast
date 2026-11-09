@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Toaster } from 'sonner'
 import type { GooeyToasterProps } from '../types'
 import { animationPresets } from '../presets'
@@ -105,7 +105,14 @@ export function GooeyToaster({
   // rather than raw mouseenter/mouseleave on the <ol>. This is more reliable because
   // Sonner manages it with onMouseEnter + onMouseMove + onMouseLeave, and it survives
   // <ol> remounts (all toasts dismissed then new ones appear).
+  const rootRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    // Sonner renders a persistent <section>; its <ol data-sonner-toaster> children come and go.
+    const section = root.querySelector('section') ?? root
+    const findOl = () => section.querySelector<HTMLElement>('[data-sonner-toaster]')
     let expandObs: MutationObserver | null = null
     let currentOl: HTMLElement | null = null
 
@@ -123,7 +130,7 @@ export function GooeyToaster({
       syncFromExpanded(ol)
     }
 
-    const el = document.querySelector<HTMLElement>('[data-sonner-toaster]')
+    const el = findOl()
     if (el) attach(el)
 
     // Re-discover if the <ol> is remounted (e.g. all toasts dismissed then new ones appear).
@@ -133,7 +140,7 @@ export function GooeyToaster({
       if (bodyRafId) return
       bodyRafId = requestAnimationFrame(() => {
         bodyRafId = 0
-        const found = document.querySelector<HTMLElement>('[data-sonner-toaster]')
+        const found = findOl()
         if (found) {
           attach(found)
         } else if (currentOl) {
@@ -143,7 +150,7 @@ export function GooeyToaster({
         }
       })
     })
-    bodyObs.observe(document.body, { childList: true, subtree: true })
+    bodyObs.observe(section, { childList: true })
 
     return () => {
       if (bodyRafId) cancelAnimationFrame(bodyRafId)
@@ -178,6 +185,7 @@ export function GooeyToaster({
 
   return (
     <>
+      <div ref={rootRef} style={{ display: 'contents' }}>
       <Toaster
         position={position}
         duration={duration}
@@ -191,6 +199,7 @@ export function GooeyToaster({
         visibleToasts={99}
         dir={dir}
       />
+      </div>
       <AriaLiveAnnouncer />
     </>
   )

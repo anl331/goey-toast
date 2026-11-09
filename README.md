@@ -185,6 +185,7 @@ Options passed as the second argument to `gooeyToast()` and type-specific method
 | `bounce`      | `number`             | Spring intensity from `0.05` (subtle) to `0.8` (dramatic), default `0.4` |
 | `showTimestamp` | `boolean`         | Show/hide timestamp in toast header/body (default `true`) |
 | `showProgress`| `boolean`            | Show countdown progress bar                      |
+| `sound`       | `boolean`            | Override the global `sound` setting for this toast |
 | `onDismiss`   | `(id) => void`       | Called when toast is dismissed (any reason)       |
 | `onAutoClose` | `(id) => void`       | Called only on timer-based auto-dismiss           |
 | `preset`      | `AnimationPresetName`| Animation preset (`'smooth'`, `'bouncy'`, `'subtle'`, `'snappy'`) |
@@ -243,6 +244,8 @@ Props for the `<GooeyToaster />` component.
 | `dir`        | `'ltr' \| 'rtl'`                     | `'ltr'`          | Layout direction                              |
 | `swipeToDismiss` | `boolean`                         | `true`           | Enable swipe-to-dismiss on mobile             |
 | `showTimestamp` | `boolean`                         | `true`           | Show/hide timestamp on all toasts globally     |
+| `sound`      | `boolean`                            | `false`          | Play a short tone per toast type              |
+| `soundVolume` | `number`                            | `0.4`            | Sound volume, `0` to `1`                      |
 
 ### `GooeyPromiseData<T>`
 
@@ -500,6 +503,24 @@ gooeyToast.success('Saved', { showTimestamp: false })
 // Globally: hide timestamp for all toasts
 <GooeyToaster showTimestamp={false} />
 ```
+
+### Notification Sounds
+
+Opt-in, off by default. Tones are synthesized with the Web Audio API (no audio files or extra dependencies), one per toast type; loading toasts are silent.
+
+```tsx
+// Globally
+<GooeyToaster sound soundVolume={0.5} />
+
+// Per toast: override the global setting
+gooeyToast.error('Upload failed', { sound: false })
+gooeyToast.success('Saved', { sound: true })
+
+// Promise toasts play the sound of the resolved state
+gooeyToast.promise(save(), { loading: 'Saving', success: 'Saved', error: 'Failed' })
+```
+
+Browsers block audio until the user has interacted with the page; until then sounds are skipped silently. Plays are throttled to one per 80ms and skipped while the tab is hidden.
 
 ## Exports
 

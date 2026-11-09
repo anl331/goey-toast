@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Toaster } from 'sonner'
 import type { GooeyToasterProps } from '../types'
 import { animationPresets } from '../presets'
-import { setGooeyPosition, setGooeyDir, setGooeySpring, setGooeyBounce, setGooeyVisibleToasts, setContainerHovered, setGooeySwipeToDismiss, setGooeyCloseOnEscape, setGooeyTheme, setGooeyMaxQueue, setGooeyQueueOverflow, setGooeyShowProgress, setGooeyCloseButton, setGooeyShowTimestamp } from '../context'
+import { setGooeyPosition, setGooeyDir, setGooeySpring, setGooeyBounce, setGooeyVisibleToasts, setContainerHovered, setGooeySwipeToDismiss, setGooeyCloseOnEscape, setGooeyTheme, setGooeyMaxQueue, setGooeyQueueOverflow, setGooeyShowProgress, setGooeyCloseButton, setGooeyShowTimestamp, setGooeySound, setGooeySoundVolume } from '../context'
 import { gooeyToast, _getMostRecentActiveId } from '../gooey-toast'
 import { AriaLiveAnnouncer } from './AriaLiveAnnouncer'
 
@@ -27,6 +27,8 @@ export function GooeyToaster({
   queueOverflow = 'drop-oldest',
   showProgress = false,
   showTimestamp = true,
+  sound = false,
+  soundVolume = 0.4,
 }: GooeyToasterProps) {
   const presetConfig = preset ? animationPresets[preset] : undefined
   const resolvedSpring = spring ?? presetConfig?.spring ?? true
@@ -100,6 +102,14 @@ export function GooeyToaster({
   useLayoutEffect(() => {
     setGooeyShowTimestamp(showTimestamp)
   }, [showTimestamp])
+
+  useLayoutEffect(() => {
+    setGooeySound(sound)
+  }, [sound])
+
+  useLayoutEffect(() => {
+    setGooeySoundVolume(soundVolume)
+  }, [soundVolume])
 
   // Detect hover on the Sonner container and broadcast to all GooeyToast instances.
   // Uses Sonner's `data-expanded` attribute (set per-toast <li>) as the hover signal

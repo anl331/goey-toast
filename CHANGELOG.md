@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The blob fill/stroke moved from SVG attributes into CSS; `fillColor` / `borderColor` / `borderWidth` now set `--gooey-fill` / `--gooey-border` / `--gooey-border-width` on the toast wrapper (same behavior)
 - Corrected the shadcn registry docs (center positions, theme values, missing props)
 
+### Added
+
+- Optional notification sounds: `GooeyToaster` `sound` (default `false`) and `soundVolume` (0-1, default `0.4`) props, plus a per-toast `sound` option on `GooeyToastOptions` and `GooeyPromiseData` that overrides the global setting. Tones are synthesized with the Web Audio API (no audio files, no dependencies), one per toast type. Promise toasts play the resolved state's sound; `gooeyToast.update` plays the new type's sound when the type changes. Plays are throttled (80ms) and skipped while the tab is hidden.
+
 ### Fixed
 
 - `GooeyToaster` `showTimestamp={false}` now correctly hides timestamps on all toasts globally (fixes [#20](https://github.com/anl331/goey-toast/issues/20))

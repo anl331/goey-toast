@@ -224,3 +224,25 @@ export function subscribeAnnouncements(cb: AnnounceCb): () => void {
   _announceSubs.add(cb)
   return () => { _announceSubs.delete(cb) }
 }
+
+// ---------------------------------------------------------------------------
+// Notification sounds — opt-in, off by default.
+// ---------------------------------------------------------------------------
+let _sound = false
+let _soundVolume = 0.4
+
+export function setGooeySound(enabled: boolean) {
+  _sound = enabled
+}
+
+export function getGooeySound() {
+  return _sound
+}
+
+export function setGooeySoundVolume(volume: number) {
+  _soundVolume = Math.min(1, Math.max(0, volume))
+}
+
+export function getGooeySoundVolume() {
+  return _soundVolume
+}

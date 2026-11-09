@@ -60,6 +60,8 @@ export interface GooeyToastOptions {
   showTimestamp?: boolean
   onDismiss?: (id: string | number) => void
   onAutoClose?: (id: string | number) => void
+  /** Override the global `sound` setting for this toast. */
+  sound?: boolean
 }
 
 export interface GooeyPromiseData<T> {
@@ -86,6 +88,8 @@ export interface GooeyPromiseData<T> {
   showTimestamp?: boolean
   onDismiss?: (id: string | number) => void
   onAutoClose?: (id: string | number) => void
+  /** Override the global `sound` setting for this toast. */
+  sound?: boolean
 }
 
 export type GooeyToastPhase = 'loading' | 'default' | 'success' | 'error' | 'warning' | 'info'
@@ -124,4 +128,8 @@ export interface GooeyToasterProps {
   queueOverflow?: 'drop-oldest' | 'drop-newest'
   showProgress?: boolean
   showTimestamp?: boolean
+  /** Play a short synthesized tone per toast type (default false). */
+  sound?: boolean
+  /** Sound volume from 0 to 1 (default 0.4). */
+  soundVolume?: number
 }

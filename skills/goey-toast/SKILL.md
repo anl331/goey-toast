@@ -37,6 +37,9 @@ npx shadcn@latest add https://goey-toast.vercel.app/r/goey-toaster.json
 ```
 
 Installs a wrapper at `components/ui/goey-toaster.tsx` and auto-installs deps.
+The wrapper maps toast colors to shadcn tokens (`--popover`, `--border`, ...),
+follows the `.dark` class automatically and defaults to `theme="system"` — no
+theme prop needed. Import from `@/components/ui/goey-toaster` in that case.
 
 ## Two required steps to render toasts
 
@@ -83,16 +86,57 @@ gooeyToast.dismiss(idOrFilter?)     // dismiss one, by type, or all
 | `fillColor` / `borderColor` / `borderWidth` | colors / px | Blob styling                  |
 | `spring` / `bounce` | `boolean` / `number` | bounce `0.05`–`0.8`, default `0.4`        |
 | `preset`        | `'smooth' \| 'bouncy' \| 'subtle' \| 'snappy'` | Animation preset    |
-| `showProgress`  | `boolean`           | Countdown bar                                  |
+| `showProgress`  | `boolean`           | Countdown bar (only on toasts with a description/action; starts when the toast expands) |
+| `sound`         | `boolean \| string \| { [type]?: url, default?: url }` | Per-toast sound override |
 | `showTimestamp` | `boolean`           | Default `true`                                 |
 | `onDismiss` / `onAutoClose` | `(id) => void` | Dismiss callbacks                    |
 
 ### `<GooeyToaster />` key props
 
 `position` (`'top-left'|'top-center'|'top-right'|'bottom-left'|'bottom-center'|'bottom-right'`, default `'bottom-right'`),
-`theme` (`'light'|'dark'`), `closeButton`, `showProgress`, `closeOnEscape`,
+`theme` (`'light'|'dark'|'system'`, default `'light'`), `closeButton`, `showProgress`, `closeOnEscape`,
 `maxQueue`, `queueOverflow` (`'drop-oldest'|'drop-newest'`), `dir` (`'ltr'|'rtl'`),
-`spring`, `bounce`, `preset`, `swipeToDismiss`, `showTimestamp`, `gap`, `offset`.
+`spring`, `bounce`, `preset`, `swipeToDismiss`, `showTimestamp`, `gap`, `offset`,
+`sound` (`boolean | url | per-type map`, default `true`), `soundVolume` (0–1, default `0.4`).
+`showProgress` and `sound` are both on by default — pass `false` to opt out.
+
+## Theming & dark mode
+
+Theme changes restyle toasts already on screen. Pick one:
+
+```tsx
+<GooeyToaster theme="system" />                    // follow the OS
+<GooeyToaster theme={resolvedTheme === 'dark' ? 'dark' : 'light'} /> // next-themes
+```
+
+Every color is a CSS variable, so app tokens (Tailwind, shadcn) can drive them.
+Declare anywhere in the tree (`:root`, `.dark`, ...):
+
+```css
+:root  { --gooey-fill: #fff;    --gooey-title-default: #111; --gooey-description: #555; }
+.dark  { --gooey-fill: #18181b; --gooey-title-default: #eee; --gooey-description: #aaa; }
+/* also: --gooey-border, --gooey-border-width, --gooey-timestamp, --gooey-close-fg,
+   --gooey-title-{success,error,warning,info,loading},
+   --gooey-action-{type}-{bg,fg,bg-hover,bg-active}, --gooey-progress-{type}, --gooey-progress-track */
+```
+
+Prefer these variables over `classNames` for colors. Per-toast `fillColor` /
+`borderColor` still win over the variables.
+
+## Sounds (on by default)
+
+Built-in tones play by default. To customize, set once on the root
+`<GooeyToaster>`; every toast uses it — don't pass `sound` on each toast:
+
+```tsx
+<GooeyToaster sound={false} />                 // turn sounds off
+<GooeyToaster sound={{                         // custom files (fetched on mount)
+  success: '/sounds/success.mp3',
+  error: '/sounds/error.mp3',
+  default: '/sounds/notify.mp3',               // fallback for unlisted types
+}} />
+gooeyToast.error('Quiet one', { sound: false }) // per-toast override
+```
 
 ## Recipes
 
@@ -143,6 +187,12 @@ gooeyToast.dismiss()                         // all
 - `<GooeyToaster />` must be mounted exactly once, near the root.
 - `update()` requires the same `id` returned from the create call.
 - `framer-motion` is a peer dep — install it explicitly.
+- Dark mode: default `theme` is `'light'`. Pass `"system"` or the app's resolved
+  theme; don't pass next-themes' raw `theme` value (it can be `"system"` or
+  `undefined` before mount — `"system"` is fine, map anything else to light/dark).
+- Sounds are on by default; if the user/app wants silent toasts, pass
+  `sound={false}`. Browsers block audio until the user has interacted with the
+  page; sound files must be same-origin or CORS-enabled.
 - Backward-compat aliases exist (`GoeyToaster`, `goeyToast`) for v0.2.x; prefer
   the double-`o` names (`GooeyToaster`, `gooeyToast`).
 

@@ -5,9 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0] - 2026-11-09
+
+### Added
+
+- `GooeyToaster` `theme="system"`: follows `prefers-color-scheme` and updates live (fixes [#22](https://github.com/anl331/goey-toast/issues/22))
+- Public CSS variables for theming (`--gooey-fill`, `--gooey-border`, `--gooey-border-width`, `--gooey-title-*`, `--gooey-description`, `--gooey-timestamp`, `--gooey-action-*`, `--gooey-progress-*`, `--gooey-close-fg`). Declare them anywhere in the tree (`:root`, `.dark`, ...) to override the built-in colors; works with Tailwind / shadcn tokens
+- `forced-colors: active` styles for Windows High Contrast
+- shadcn registry wrapper maps the variables to shadcn tokens, follows the `.dark` class, and defaults to `theme="system"`
+- Notification sounds: `GooeyToaster` `sound` (default `true`) and `soundVolume` (0-1, default `0.4`) props, plus a per-toast `sound` option on `GooeyToastOptions` and `GooeyPromiseData` that overrides the global setting. Tones are synthesized with the Web Audio API (no audio files, no dependencies), one per toast type. Promise toasts play the resolved state's sound; `gooeyToast.update` plays the new type's sound when the type changes. Plays are throttled (80ms) and skipped while the tab is hidden.
+- Custom sound files: `sound` (global prop and per-toast option) now also accepts a URL string or a per-type map such as `{ success: '/ding.mp3' }`. Files are fetched, decoded and cached once per URL; types missing from a map, and files that fail to load, fall back to the built-in tone. New `preloadGooeySounds(urls)` export and `GooeySoundOption` type. A map may include a `default` key used for any type not listed. Set a full map once on the root `GooeyToaster` and every toast uses it: the files are fetched on mount (no AudioContext is created until a toast plays, and the first toast waits for an in-flight fetch rather than falling back to the built-in tone).
+
+### Changed
+
+- **Sound and the progress bar are now on by default.** Toasts play a short built-in tone per type and show a countdown bar (on toasts with a description or action). Opt out with `<GooeyToaster sound={false} showProgress={false} />`, or per toast with `{ sound: false, showProgress: false }`
+- Theme is now a subscribable store: already-mounted toasts restyle when the theme changes (previously only toasts created afterwards could pick it up, and the first toast could render before the theme was set)
+- The blob fill/stroke moved from SVG attributes into CSS; `fillColor` / `borderColor` / `borderWidth` now set `--gooey-fill` / `--gooey-border` / `--gooey-border-width` on the toast wrapper (same behavior)
+- Corrected the shadcn registry docs (center positions, theme values, missing props)
+- Container-hover detection now observes only Sonner's toaster section instead of all of `document.body`, so DOM changes elsewhere in the app no longer trigger lookups
+- CI: GitHub Actions runs typecheck, tests and build on Node 20 and 22, plus a CLI smoke test on Node 18
+- Dev dependency security updates (`npm audit fix`); no runtime dependency was affected
+- Agent Skill (`SKILL.md`) documents theming/dark mode, CSS variables, sounds and the progress bar so coding agents set them up correctly
+- Demo site: new docs sections for Theming & Dark Mode, CSS Variables, Notification Sounds and Progress Bar
 
 ### Fixed
+
+- Toasts stayed light when the app switched to dark mode, including with `theme={resolvedTheme}` from next-themes ([#22](https://github.com/anl331/goey-toast/issues/22))
+- Progress bar now starts when the toast expands and runs exactly as long as the toast stays open (it used to start while the toast was still a pill, with the wrong duration on first render)
 
 - `GooeyToaster` `showTimestamp={false}` now correctly hides timestamps on all toasts globally (fixes [#20](https://github.com/anl331/goey-toast/issues/20))
 - Promise toasts respect the global `showTimestamp` setting when no per-toast override is provided

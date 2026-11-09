@@ -42,7 +42,7 @@ npm install goey-toast
 npx shadcn@latest add https://goey-toast.vercel.app/r/goey-toaster.json
 ```
 
-This installs a thin wrapper component at `components/ui/goey-toaster.tsx` and auto-installs the `goey-toast` and `framer-motion` packages.
+This installs a thin wrapper component at `components/ui/goey-toaster.tsx` and auto-installs the `goey-toast` and `framer-motion` packages. The wrapper maps the `--gooey-*` CSS variables to your shadcn tokens, follows the `.dark` class automatically, and defaults to `theme="system"`. Edit the `GOOEY_SHADCN_CSS` block in the installed file to change the mapping; on older shadcn setups whose tokens are bare HSL triplets, wrap each one with `hsl()` (for example `hsl(var(--popover))`).
 
 ### AI Agents (Skill)
 
@@ -185,6 +185,7 @@ Options passed as the second argument to `gooeyToast()` and type-specific method
 | `bounce`      | `number`             | Spring intensity from `0.05` (subtle) to `0.8` (dramatic), default `0.4` |
 | `showTimestamp` | `boolean`         | Show/hide timestamp in toast header/body (default `true`) |
 | `showProgress`| `boolean`            | Show countdown progress bar                      |
+| `sound`       | `boolean \| string \| Record` | Override the global `sound` setting for this toast |
 | `onDismiss`   | `(id) => void`       | Called when toast is dismissed (any reason)       |
 | `onAutoClose` | `(id) => void`       | Called only on timer-based auto-dismiss           |
 | `preset`      | `AnimationPresetName`| Animation preset (`'smooth'`, `'bouncy'`, `'subtle'`, `'snappy'`) |
@@ -230,19 +231,21 @@ Props for the `<GooeyToaster />` component.
 | `duration`   | `number`                              | --               | Default display duration in ms                |
 | `gap`        | `number`                              | `14`             | Gap between stacked toasts (px)               |
 | `offset`     | `number \| string`                    | `'24px'`         | Distance from screen edge                     |
-| `theme`      | `'light' \| 'dark'`                   | `'light'`        | Color theme                                   |
+| `theme`      | `'light' \| 'dark' \| 'system'`    | `'light'`        | Color theme; `'system'` follows the OS and updates live |
 | `toastOptions` | `Partial<ExternalToast>`            | --               | Default options passed to Sonner              |
 | `spring`     | `boolean`                             | `true`           | Enable spring/bounce animations globally      |
 | `bounce`     | `number`                              | `0.4`            | Spring intensity: `0.05` (subtle) to `0.8` (dramatic) |
 | `preset`     | `AnimationPresetName`                 | --               | Animation preset for all toasts               |
 | `closeOnEscape` | `boolean`                          | `true`           | Dismiss most recent toast on Escape key       |
 | `closeButton`  | `boolean \| 'top-left' \| 'top-right'` | `false`       | Show close button on hover                    |
-| `showProgress` | `boolean`                           | `false`          | Show countdown progress bar on all toasts     |
+| `showProgress` | `boolean`                           | `true`           | Show countdown progress bar on all toasts     |
 | `maxQueue`   | `number`                              | `Infinity`       | Maximum queued toasts                         |
 | `queueOverflow` | `'drop-oldest' \| 'drop-newest'`   | `'drop-oldest'`  | Queue overflow strategy                       |
 | `dir`        | `'ltr' \| 'rtl'`                     | `'ltr'`          | Layout direction                              |
 | `swipeToDismiss` | `boolean`                         | `true`           | Enable swipe-to-dismiss on mobile             |
 | `showTimestamp` | `boolean`                         | `true`           | Show/hide timestamp on all toasts globally     |
+| `sound`      | `boolean \| string \| Record`        | `true`           | `true` = built-in tone, string = audio file URL, object = per-type URLs |
+| `soundVolume` | `number`                            | `0.4`            | Sound volume, `0` to `1`                      |
 
 ### `GooeyPromiseData<T>`
 
@@ -402,11 +405,46 @@ gooeyToast.success('Saved', { bounce: 0.8 })
 
 The `bounce` value (0.05 to 0.8) controls spring stiffness, damping, and squish magnitude together so you get a consistent feel from one number.
 
-### Dark Mode
+### Theming (light, dark, system)
 
 ```tsx
-<GooeyToaster theme="dark" />
+<GooeyToaster theme="dark" />    // always dark
+<GooeyToaster theme="system" />  // follows prefers-color-scheme, updates live
 ```
+
+Theme changes restyle toasts that are already on screen, not just new ones. With `next-themes` and similar, pass the resolved theme (`resolvedTheme`) or use `"system"`.
+
+For full control, override the public CSS variables. The library only sets private `--_gooey-*` values and reads `var(--gooey-*, <default>)`, so your variables win when declared anywhere in the tree (`:root`, `.dark`, a parent element):
+
+| Variable | Controls |
+| -------- | -------- |
+| `--gooey-fill` | Toast background (blob and close button) |
+| `--gooey-border`, `--gooey-border-width` | Border color and width |
+| `--gooey-title-{default,success,error,warning,info,loading}` | Title color per phase |
+| `--gooey-description`, `--gooey-timestamp` | Description and timestamp text |
+| `--gooey-action-{default,success,error,warning,info}-{bg,fg,bg-hover,bg-active}` | Action button colors per phase |
+| `--gooey-progress-{default,success,error,warning,info}`, `--gooey-progress-track` | Progress bar and its track |
+| `--gooey-close-fg` | Close button icon color |
+
+The `fillColor`, `borderColor` and `borderWidth` toast options still work and take precedence over the variables for that toast.
+
+Tailwind / shadcn example, mapping to your design tokens (follows the `.dark` class, no `theme` prop needed):
+
+```css
+.gooey-wrapper {
+  --gooey-fill: var(--popover);
+  --gooey-border: var(--border);
+  --gooey-border-width: 1px;
+  --gooey-title-default: var(--popover-foreground);
+  --gooey-description: var(--muted-foreground);
+}
+```
+
+The shadcn registry install (`npx shadcn@latest add .../goey-toaster.json`) ships with this mapping already applied.
+
+Windows High Contrast / forced-colors mode is handled with system colors.
+
+> Variables solve color theming. Non-color utility classes passed via `classNames` (`rounded-*`, `p-*`, ...) may still lose to the library's unlayered CSS depending on import order and Tailwind v4 layers.
 
 ### RTL Support
 
@@ -427,14 +465,16 @@ gooeyToast.success('Saved', { preset: 'bouncy' })
 
 ### Progress Bar
 
-Show a countdown progress bar on toasts:
+A countdown progress bar is shown on toasts by default. Turn it off per toast or globally:
 
 ```tsx
-gooeyToast.success('Saved', { showProgress: true })
+gooeyToast.success('Saved', { showProgress: false })
 
-// Or enable globally
-<GooeyToaster showProgress />
+// Or disable globally
+<GooeyToaster showProgress={false} />
 ```
+
+The bar starts when the toast expands, pauses on hover, and runs out as the toast collapses. It only shows for toasts with a body (a `description` or an `action`). The per-toast value overrides the global one.
 
 ### Keyboard Shortcuts
 
@@ -465,6 +505,64 @@ gooeyToast.success('Saved', { showTimestamp: false })
 // Globally: hide timestamp for all toasts
 <GooeyToaster showTimestamp={false} />
 ```
+
+### Notification Sounds
+
+On by default (built-in tones); pass `sound={false}` to turn them off. Tones are synthesized with the Web Audio API (no audio files or extra dependencies), one per toast type; loading toasts are silent.
+
+#### Set it once in your root layout
+
+Put your sounds on the root `<GooeyToaster>`; every toast in the app uses them, with no `sound` option per toast:
+
+```tsx
+<GooeyToaster
+  soundVolume={0.5}
+  sound={{
+    success: '/sounds/success.mp3',
+    error: '/sounds/error.mp3',
+    warning: '/sounds/warning.mp3',
+    info: '/sounds/info.mp3',
+    default: '/sounds/default.mp3',
+  }}
+/>
+```
+
+The files are fetched as soon as the toaster mounts (no audio context is created until a toast plays), so the first toast plays its file without delay. A type missing from the map uses the `default` file, and if there is no `default` key it uses the built-in tone.
+
+```tsx
+// Globally
+<GooeyToaster sound soundVolume={0.5} />
+
+// Per toast: override the global setting
+gooeyToast.error('Upload failed', { sound: false })
+gooeyToast.success('Saved', { sound: true })
+
+// Promise toasts play the sound of the resolved state
+gooeyToast.promise(save(), { loading: 'Saving', success: 'Saved', error: 'Failed' })
+```
+
+#### Custom sound files
+
+`sound` also accepts a URL string (used for every type) or a per-type map. The lookup is `map[type] ?? map.default ?? built-in tone`, and if a file fails to load or decode the built-in tone plays instead.
+
+```tsx
+// One file for every type
+<GooeyToaster sound="/sounds/notify.mp3" />
+
+// Per-type files (other types use `default`, then the built-in tone)
+<GooeyToaster sound={{ success: '/sounds/ding.mp3', error: '/sounds/buzz.mp3' }} />
+
+// Per toast
+gooeyToast.success('Saved', { sound: '/sounds/ding.mp3' })
+
+// Optional: fetch files ahead of time (the toaster already does this for its own `sound` prop)
+import { preloadGooeySounds } from 'goey-toast'
+preloadGooeySounds(['/sounds/ding.mp3', '/sounds/buzz.mp3'])
+```
+
+Files are fetched once, decoded on first play with the Web Audio API, cached per URL, and played at `soundVolume`. They must be same-origin or served with CORS headers.
+
+Browsers block audio until the user has interacted with the page; until then sounds are skipped silently. Plays are throttled to one per 80ms and skipped while the tab is hidden.
 
 ## Exports
 

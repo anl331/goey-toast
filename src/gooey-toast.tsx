@@ -3,11 +3,13 @@ import { toast } from 'sonner'
 import { GooeyToast } from './components/GooeyToast'
 import { ToastErrorBoundary } from './components/ToastErrorBoundary'
 import { getGooeyVisibleToasts, getGooeyMaxQueue, getGooeyQueueOverflow, announce, type AriaLivePoliteness } from './context'
+import { playGooeySound } from './sound'
 import type {
   GooeyToastOptions,
   GooeyPromiseData,
   GooeyToastPhase,
   GooeyToastType,
+  GooeySoundOption,
   GooeyToastAction,
   GooeyToastClassNames,
   GooeyToastTimings,
@@ -45,6 +47,8 @@ const _toastCallbacks = new Map<string | number, {
 }>()
 const _autoCloseFlags = new Set<string | number>()
 const _manualDismissFlags = new Set<string | number>()
+// Per-toast `sound` overrides, so in-place type updates honor them.
+const _soundOverrides = new Map<string | number, GooeySoundOption>()
 
 /** @internal Mark a toast as being auto-closed (timer-based dismiss). */
 export function _markAutoClose(id: string | number) {
@@ -59,6 +63,7 @@ export function _resetQueue() {
   _toastCallbacks.clear()
   _autoCloseFlags.clear()
   _manualDismissFlags.clear()
+  _soundOverrides.clear()
 }
 
 /** @internal Get the most recently created active toast ID — used by Escape key handler. */
@@ -107,6 +112,7 @@ function _onToastDismissed(id: string | number) {
   }
   _autoCloseFlags.delete(id)
   _manualDismissFlags.delete(id)
+  _soundOverrides.delete(id)
 
   _processQueue()
 }
@@ -124,6 +130,7 @@ function updateGooeyToast(id: string | number, options: GooeyToastUpdateOptions)
     listener(options)
     // Update the type in _activeIds if the type changed
     if (options.type !== undefined && _activeIds.has(id)) {
+      if (_activeIds.get(id) !== options.type) playGooeySound(options.type, _soundOverrides.get(id))
       _activeIds.set(id, options.type)
     }
     // Announce updated content to screen readers
@@ -307,6 +314,7 @@ function PromiseToastWrapper<T>({
         setDescription(desc)
         setAction(data.action?.success)
         setPhase('success')
+        playGooeySound('success', data.sound)
         resetDuration(Boolean(desc || data.action?.success))
         announce(buildAnnouncementMessage(resolvedTitle, desc), 'polite')
       })
@@ -319,6 +327,7 @@ function PromiseToastWrapper<T>({
         setDescription(desc)
         setAction(data.action?.error)
         setPhase('error')
+        playGooeySound('error', data.sound)
         resetDuration(Boolean(desc || data.action?.error))
         announce(buildAnnouncementMessage(resolvedTitle, desc), 'assertive')
       })
@@ -360,7 +369,10 @@ function createGooeyToast(
 
   const toastId = options?.id ?? Math.random().toString(36).slice(2)
 
+  if (options?.sound !== undefined) _soundOverrides.set(toastId, options.sound)
+
   const create = () => {
+    playGooeySound(type, options?.sound)
     toast.custom(
       () => (
         <GooeyToastWrapper

@@ -2,6 +2,7 @@ import './components/GooeyToast.css'
 export { GooeyToaster } from './components/GooeyToaster'
 export { gooeyToast } from './gooey-toast'
 export { animationPresets } from './presets'
+export { preloadGooeySounds } from './sound'
 export type { AnimationPreset, AnimationPresetName } from './presets'
 export type {
   GooeyToastOptions,
@@ -12,6 +13,7 @@ export type {
   GooeyToastTimings,
   GooeyToastUpdateOptions,
   DismissFilter,
+  GooeySoundOption,
 } from './types'
 
 // Backward-compatible aliases for v0.2.x users upgrading to v0.3.0

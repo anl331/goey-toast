@@ -146,11 +146,13 @@ function App() {
   const [bSpring, setBSpring] = useState(true)
   const [bBounce, setBBounce] = useState(0.4)
   const [bPreset, setBPreset] = useState<AnimationPresetName | null>(null)
-  const [bTheme, setBTheme] = useState<'light' | 'dark'>('light')
-  const [bShowProgress, setBShowProgress] = useState(false)
+  const [bTheme, setBTheme] = useState<'light' | 'dark' | 'system'>('light')
+  const [bShowProgress, setBShowProgress] = useState(true)
   const [bCloseOnEscape, setBCloseOnEscape] = useState(true)
   const [bShowTimestamp, setBShowTimestamp] = useState(true)
   const [bCloseButton, setBCloseButton] = useState<boolean | 'top-left' | 'top-right'>(false)
+  const [bSound, setBSound] = useState(true)
+  const [bSoundFile, setBSoundFile] = useState(false)
 
   // Close mobile menu on page change
   useEffect(() => {
@@ -210,7 +212,9 @@ function App() {
 
     const toasterProps = [`position="${bPosition}"`]
     if (bTheme !== 'light') toasterProps.push(`theme="${bTheme}"`)
-    if (bShowProgress) toasterProps.push('showProgress')
+    if (!bShowProgress) toasterProps.push('showProgress={false}')
+    if (!bSound) toasterProps.push('sound={false}')
+    else if (bSoundFile) toasterProps.push('sound="/notify.wav"')
     if (!bCloseOnEscape) toasterProps.push('closeOnEscape={false}')
     if (bCloseButton === true) toasterProps.push('closeButton')
     else if (bCloseButton === 'top-left') toasterProps.push('closeButton="top-left"')
@@ -257,6 +261,7 @@ function App() {
         showProgress={bShowProgress}
         closeOnEscape={bCloseOnEscape}
         closeButton={bCloseButton}
+        sound={bSound ? (bSoundFile ? '/notify.wav' : true) : false}
       />
 
       {/* Header */}
@@ -320,6 +325,23 @@ function App() {
           <div className="changelog-header">
             <h1>Changelog</h1>
             <p>What's new in gooey-toast.</p>
+          </div>
+
+          <div className="changelog-entry">
+            <div className="changelog-version">
+              <span className="changelog-tag">v0.6.0</span>
+              <span className="changelog-date">Nov 9, 2026</span>
+            </div>
+            <div className="changelog-body">
+              <h4>Dark Mode, Theming &amp; Notification Sounds</h4>
+              <ul>
+                <li><code>theme="system"</code> follows the OS, and theme changes now restyle toasts already on screen (fixes dark mode with next-themes, <a href="https://github.com/anl331/goey-toast/issues/22" target="_blank" rel="noreferrer">#22</a>)</li>
+                <li>Public <code>--gooey-*</code> CSS variables for every color, so Tailwind and shadcn tokens can theme toasts; the shadcn wrapper now follows <code>.dark</code> automatically</li>
+                <li>Notification sounds, on by default: built-in tones per type, or your own files — set one map on <code>GooeyToaster</code> and every toast uses it (<code>{'sound={false}'}</code> to mute)</li>
+                <li>Progress bar now on by default; it starts when the toast expands and runs out exactly as it closes</li>
+                <li>Windows High Contrast support, lighter hover detection, and CI on every PR</li>
+              </ul>
+            </div>
           </div>
 
           <div className="changelog-entry">
@@ -518,7 +540,7 @@ function App() {
           {/* Hero */}
           <div className="hero">
             <div className="hero-badge">
-              <span /> v0.5.0
+              <span /> v0.6.0
             </div>
             <h1 ref={heroTitleRef} className={heroLanding ? 'hero-title--landing' : ''}>gooey-toast <img src="/mascot.png" alt="mascot" className={`hero-mascot${heroLanding ? ' hero-mascot--landing' : ''}`} /></h1>
             <p className="hero-description">
@@ -897,7 +919,7 @@ function App() {
               <div className="builder-row">
                 <div className="builder-label">Theme</div>
                 <div className="type-pills">
-                  {(['light', 'dark'] as const).map((t) => (
+                  {(['light', 'dark', 'system'] as const).map((t) => (
                     <button
                       key={t}
                       className="type-pill"
@@ -940,6 +962,27 @@ function App() {
                   </button>
                 </div>
               </div>
+
+              {/* Sound */}
+              <div className="builder-row">
+                <div className="toggle-row">
+                  <span className="toggle-row-label">Sound</span>
+                  <button className="toggle" data-on={bSound} onClick={() => setBSound(!bSound)}>
+                    <div className="toggle-knob" />
+                  </button>
+                </div>
+              </div>
+
+              {bSound && (
+                <div className="builder-row">
+                  <div className="toggle-row">
+                    <span className="toggle-row-label">Custom Sound File</span>
+                    <button className="toggle" data-on={bSoundFile} onClick={() => setBSoundFile(!bSoundFile)}>
+                      <div className="toggle-knob" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Close Button */}
               <div className="builder-row">
@@ -1054,6 +1097,25 @@ export default function RootLayout({ children }) {
 
 // Trigger from anywhere
 gooeyToast.success("Saved!")`}</code></pre>
+                <p>
+                  The wrapper maps goey-toast's{' '}
+                  <span className="inline-code">--gooey-*</span> CSS variables to your shadcn
+                  tokens (<span className="inline-code">--popover</span>,{' '}
+                  <span className="inline-code">--border</span>,{' '}
+                  <span className="inline-code">--muted-foreground</span>, ...), so toasts follow
+                  the <span className="inline-code">.dark</span> class automatically. It defaults
+                  to <span className="inline-code">theme="system"</span>, and every other{' '}
+                  <span className="inline-code">GooeyToaster</span> prop passes through.
+                </p>
+                <p>
+                  To change the mapping, edit the{' '}
+                  <span className="inline-code">GOOEY_SHADCN_CSS</span> block in the installed
+                  file. If your project uses older shadcn tokens that hold bare HSL triplets,
+                  wrap each one with <span className="inline-code">hsl()</span>:
+                </p>
+                <pre><code>{`--gooey-fill: hsl(var(--popover));
+--gooey-border: hsl(var(--border));
+--gooey-description: hsl(var(--muted-foreground));`}</code></pre>
               </div>
             </div>
 
@@ -1236,16 +1298,20 @@ gooeyToast.success('Deployed', {
                     <tr><td>duration</td><td>number</td><td>—</td><td>Default display duration (ms)</td></tr>
                     <tr><td>gap</td><td>number</td><td>14</td><td>Gap between stacked toasts</td></tr>
                     <tr><td>offset</td><td>number | string</td><td>'24px'</td><td>Distance from screen edge</td></tr>
-                    <tr><td>theme</td><td>'light' | 'dark'</td><td>'light'</td><td>Color theme</td></tr>
+                    <tr><td>theme</td><td>'light' | 'dark' | 'system'</td><td>'light'</td><td>Color theme; 'system' follows prefers-color-scheme and updates live</td></tr>
                     <tr><td>spring</td><td>boolean</td><td>true</td><td>Enable spring/bounce animations globally</td></tr>
                     <tr><td>bounce</td><td>number</td><td>0.4</td><td>Spring intensity: 0.05 (subtle) to 0.8 (dramatic)</td></tr>
                     <tr><td>closeOnEscape</td><td>boolean</td><td>true</td><td>Dismiss most recent toast on Escape key press</td></tr>
-                    <tr><td>showProgress</td><td>boolean</td><td>false</td><td>Show countdown progress bar on all toasts</td></tr>
+                    <tr><td>showProgress</td><td>boolean</td><td>true</td><td>Show countdown progress bar on all toasts</td></tr>
                     <tr><td>maxQueue</td><td>number</td><td>Infinity</td><td>Maximum number of toasts in the waiting queue</td></tr>
                     <tr><td>queueOverflow</td><td>'drop-oldest' | 'drop-newest'</td><td>'drop-oldest'</td><td>Behavior when queue exceeds maxQueue</td></tr>
                     <tr><td>swipeToDismiss</td><td>boolean</td><td>true</td><td>Enable swipe-to-dismiss touch gestures on mobile</td></tr>
                     <tr><td>preset</td><td>AnimationPresetName</td><td>—</td><td>Named animation preset (smooth, bouncy, subtle, snappy)</td></tr>
                     <tr><td>showTimestamp</td><td>boolean</td><td>true</td><td>Show/hide timestamp on all toasts globally</td></tr>
+                    <tr><td>closeButton</td><td>boolean | 'top-left' | 'top-right'</td><td>false</td><td>Show close button on hover</td></tr>
+                    <tr><td>dir</td><td>'ltr' | 'rtl'</td><td>'ltr'</td><td>Layout direction</td></tr>
+                    <tr><td>sound</td><td>boolean | string | Record</td><td>true</td><td>true = built-in tone per type; string = audio file URL for every type; object = per-type URLs with an optional default fallback</td></tr>
+                    <tr><td>soundVolume</td><td>number</td><td>0.4</td><td>Sound volume from 0 to 1</td></tr>
                   </tbody>
                 </table>
                 </div>
@@ -1276,7 +1342,8 @@ gooeyToast.success('Deployed', {
                     <tr><td>timing</td><td>GooeyToastTimings</td><td>Animation timing overrides</td></tr>
                     <tr><td>spring</td><td>boolean</td><td>Enable spring/bounce animations (default true)</td></tr>
                     <tr><td>bounce</td><td>number</td><td>Spring intensity: 0.05 (subtle) to 0.8 (dramatic), default 0.4</td></tr>
-                    <tr><td>showProgress</td><td>boolean</td><td>Show countdown progress bar on this toast</td></tr>
+                    <tr><td>showProgress</td><td>boolean</td><td>Show countdown progress bar on this toast (toasts with a body only)</td></tr>
+                    <tr><td>sound</td><td>boolean | string | Record</td><td>Override the global sound for this toast: true, false, a URL, or a per-type map</td></tr>
                     <tr><td>showTimestamp</td><td>boolean</td><td>Show/hide timestamp on this toast; when omitted, inherits <code>GooeyToaster.showTimestamp</code> (default <code>true</code>)</td></tr>
                     <tr><td>preset</td><td>AnimationPresetName</td><td>Named animation preset (smooth, bouncy, subtle, snappy)</td></tr>
                     <tr><td>onDismiss</td><td>(id: string | number) =&gt; void</td><td>Callback fired when toast is dismissed (any reason)</td></tr>
@@ -1340,6 +1407,123 @@ gooeyToast.update(id, {
             <div className="doc-section">
               <div className="doc-section-label">
                 <div className="doc-number">12</div>
+                <h3>Theming &amp; Dark Mode</h3>
+              </div>
+              <div className="doc-section-content">
+                <p>
+                  Set the color theme with the <span className="inline-code">theme</span> prop on{' '}
+                  <span className="inline-code">GooeyToaster</span>. It defaults to{' '}
+                  <span className="inline-code">'light'</span>.
+                </p>
+                <pre><code>{`<GooeyToaster theme="light" />    // default
+<GooeyToaster theme="dark" />     // always dark
+<GooeyToaster theme="system" />   // follows prefers-color-scheme`}</code></pre>
+                <p>
+                  <span className="inline-code">'system'</span> follows the OS color scheme and
+                  updates live when it changes. Theme changes also restyle toasts that are
+                  already on screen, not just new ones, so you can switch themes at any time.
+                </p>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>With next-themes</h4>
+                <p>
+                  Pass the resolved theme so the toaster follows your app's toggle:
+                </p>
+                <pre><code>{`'use client'
+import { useTheme } from 'next-themes'
+import { GooeyToaster } from 'goey-toast'
+
+export function Toaster() {
+  const { resolvedTheme } = useTheme()
+  return <GooeyToaster theme={resolvedTheme === 'dark' ? 'dark' : 'light'} />
+}`}</code></pre>
+                <p>
+                  If you only need to match the OS preference, the simpler option needs no hook:
+                </p>
+                <pre><code>{`<GooeyToaster theme="system" />`}</code></pre>
+                <p>
+                  Need exact brand colors instead of the built-in light and dark palettes? See{' '}
+                  <span className="inline-code">CSS Variables</span> below.
+                </p>
+              </div>
+            </div>
+
+            <div className="doc-section">
+              <div className="doc-section-label">
+                <div className="doc-number">13</div>
+                <h3>CSS Variables</h3>
+              </div>
+              <div className="doc-section-content">
+                <p>
+                  Every color is a public CSS variable. Declare any of them anywhere in the tree
+                  (<span className="inline-code">:root</span>,{' '}
+                  <span className="inline-code">.dark</span>, a parent element) and your value
+                  wins over the built-in one. Anything you leave out keeps its default.
+                </p>
+                <div className="table-scroll">
+                <table className="prop-table">
+                  <thead>
+                    <tr><th>Variable</th><th>Controls</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>--gooey-fill</td><td>Toast background (blob and close button)</td></tr>
+                    <tr><td>--gooey-border</td><td>Border color</td></tr>
+                    <tr><td>--gooey-border-width</td><td>Border width</td></tr>
+                    <tr><td>--gooey-title-{'{default,success,error,warning,info,loading}'}</td><td>Title color per phase</td></tr>
+                    <tr><td>--gooey-description</td><td>Description text</td></tr>
+                    <tr><td>--gooey-timestamp</td><td>Timestamp text</td></tr>
+                    <tr><td>--gooey-action-{'{default,success,error,warning,info}'}-{'{bg,fg,bg-hover,bg-active}'}</td><td>Action button colors per phase</td></tr>
+                    <tr><td>--gooey-progress-{'{default,success,error,warning,info}'}</td><td>Progress bar color per phase</td></tr>
+                    <tr><td>--gooey-progress-track</td><td>Progress bar track</td></tr>
+                    <tr><td>--gooey-close-fg</td><td>Close button icon color</td></tr>
+                  </tbody>
+                </table>
+                </div>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Override in :root and .dark</h4>
+                <pre><code>{`:root {
+  --gooey-fill: #ffffff;
+  --gooey-border: #e5e7eb;
+  --gooey-title-default: #111827;
+  --gooey-description: #6b7280;
+}
+
+.dark {
+  --gooey-fill: #18181b;
+  --gooey-border: #27272a;
+  --gooey-title-default: #fafafa;
+  --gooey-description: #a1a1aa;
+}`}</code></pre>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Tailwind / shadcn tokens</h4>
+                <p>
+                  Map the variables to your design tokens once. They follow the{' '}
+                  <span className="inline-code">.dark</span> class, so no{' '}
+                  <span className="inline-code">theme</span> prop is needed.
+                </p>
+                <pre><code>{`.gooey-wrapper {
+  --gooey-fill: var(--popover);
+  --gooey-border: var(--border);
+  --gooey-border-width: 1px;
+  --gooey-title-default: var(--popover-foreground);
+  --gooey-description: var(--muted-foreground);
+}`}</code></pre>
+                <p>
+                  The <span className="inline-code">fillColor</span>,{' '}
+                  <span className="inline-code">borderColor</span> and{' '}
+                  <span className="inline-code">borderWidth</span> toast options still work and
+                  take precedence over the variables for that toast. Windows High Contrast
+                  (forced-colors) mode is handled with system colors.
+                </p>
+                <p>
+                  Note: variables cover colors. Non-color utility classes passed via{' '}
+                  <span className="inline-code">classNames</span> (such as{' '}
+                  <span className="inline-code">rounded-*</span> or{' '}
+                  <span className="inline-code">p-*</span>) may still lose to the library's CSS
+                  depending on import order and Tailwind v4 layers.
+                </p>
+              </div>
+            </div>
+
+            <div className="doc-section">
+              <div className="doc-section-label">
+                <div className="doc-number">14</div>
                 <h3>Custom Styling</h3>
               </div>
               <div className="doc-section-content">
@@ -1380,9 +1564,123 @@ gooeyToast.update(id, {
                 </div>
               </div>
             </div>
+
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">13</div>
+                <div className="doc-number">15</div>
+                <h3>Notification Sounds</h3>
+              </div>
+              <div className="doc-section-content">
+                <p>
+                  Sounds are on by default (built-in tones; pass <span className="inline-code">{'sound={false}'}</span> to turn them off). Set{' '}
+                  <span className="inline-code">sound</span> once on{' '}
+                  <span className="inline-code">GooeyToaster</span> in your root layout and every
+                  toast in the app uses it, with no per-toast config needed.
+                </p>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Your own sound files (set it once)</h4>
+                <pre><code>{`// app/layout.tsx (or your root component)
+<GooeyToaster
+  sound={{
+    success: '/sounds/success.mp3',
+    error: '/sounds/error.mp3',
+    warning: '/sounds/warning.mp3',
+    info: '/sounds/info.mp3',
+    default: '/sounds/default.mp3',
+  }}
+  soundVolume={0.5}
+/>
+
+// Anywhere else: no sound option needed
+gooeyToast.success('Saved')   // plays /sounds/success.mp3
+gooeyToast.error('Failed')    // plays /sounds/error.mp3`}</code></pre>
+                <p>
+                  Put the files in your <span className="inline-code">public/</span> folder. Each
+                  toast type plays its own file. The{' '}
+                  <span className="inline-code">default</span> key is the fallback for any type
+                  you leave out. The lookup order is{' '}
+                  <span className="inline-code">map[type] ?? map.default ?? built-in tone</span>.
+                  If a file fails to load or decode, the built-in tone plays instead.
+                </p>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Built-in tones</h4>
+                <p>
+                  Pass <span className="inline-code">true</span> to use tones synthesized with
+                  the Web Audio API: no audio files, no extra dependencies, one distinct tone per
+                  toast type.
+                </p>
+                <pre><code>{`<GooeyToaster sound soundVolume={0.5} />   // soundVolume: 0 to 1, default 0.4`}</code></pre>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>One file for every type</h4>
+                <pre><code>{`<GooeyToaster sound="/sounds/notify.mp3" />`}</code></pre>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Per-toast override</h4>
+                <p>
+                  The per-toast <span className="inline-code">sound</span> option beats the
+                  global setting. It accepts the same values: <span className="inline-code">true</span>,{' '}
+                  <span className="inline-code">false</span>, a URL, or a per-type map.
+                </p>
+                <pre><code>{`gooeyToast.error('Upload failed', { sound: false })              // silent
+gooeyToast.success('Saved', { sound: true })                     // built-in tone
+gooeyToast.success('Saved', { sound: '/sounds/ding.mp3' })       // custom file
+gooeyToast.info('Heads up', { sound: { info: '/sounds/ping.mp3' } })`}</code></pre>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Preloading</h4>
+                <p>
+                  Files set on <code>GooeyToaster</code> are fetched as soon as it mounts, so the
+                  first toast plays instantly. Files used only per toast are fetched on first use
+                  and cached per URL; preload those to make their first play instant too.
+                </p>
+                <pre><code>{`import { preloadGooeySounds } from 'goey-toast'
+
+preloadGooeySounds(['/sounds/success.mp3', '/sounds/error.mp3'])`}</code></pre>
+                <h4 style={{ marginTop: 20, fontSize: 13 }}>Good to know</h4>
+                <ul style={{ paddingLeft: 20, fontSize: 13, lineHeight: 1.7 }}>
+                  <li>Sound files must be same-origin or served with CORS headers.</li>
+                  <li>Browsers block audio until the user has interacted with the page. Until then, sounds are skipped silently.</li>
+                  <li>Loading toasts are silent. Promise toasts play the sound of the resolved state (success or error).</li>
+                  <li><span className="inline-code">gooeyToast.update</span> plays the new type's sound when the type changes.</li>
+                  <li>Plays are throttled to one per 80ms and skipped while the tab is hidden.</li>
+                </ul>
+                <div className="doc-try-buttons">
+                  <button onClick={() => gooeyToast.success('Built-in tone', { ...DEMO_DEFAULTS, sound: true })}>Success + Sound</button>
+                  <button onClick={() => gooeyToast.error('Built-in tone', { ...DEMO_DEFAULTS, sound: true })}>Error + Sound</button>
+                  <button onClick={() => gooeyToast.promise(sleep(1500), { ...DEMO_DEFAULTS, sound: true, loading: 'Saving...', success: 'Saved', error: 'Failed' })}>Promise + Sound</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="doc-section">
+              <div className="doc-section-label">
+                <div className="doc-number">16</div>
+                <h3>Progress Bar</h3>
+              </div>
+              <div className="doc-section-content">
+                <p>
+                  Show a countdown bar that visualizes how long the toast stays open. On by default; turn it off
+                  per toast or globally with <span className="inline-code">{'showProgress={false}'}</span>.
+                </p>
+                <pre><code>{`// Per toast
+gooeyToast.success('Saved', {
+  description: 'Your changes have been synced.',
+  showProgress: true,
+})
+
+// Globally
+<GooeyToaster showProgress />`}</code></pre>
+                <p>
+                  The bar starts when the toast expands, pauses while you hover it, and runs out
+                  as the toast collapses. It only shows for toasts that have a body (a{' '}
+                  <span className="inline-code">description</span> or an{' '}
+                  <span className="inline-code">action</span>); compact pill toasts have nothing
+                  to count down. The per-toast value overrides the global one. Colors follow the{' '}
+                  <span className="inline-code">--gooey-progress-*</span> variables.
+                </p>
+                <div className="doc-try-buttons">
+                  <button onClick={() => gooeyToast.success('Saved', { ...DEMO_DEFAULTS, showProgress: true, description: 'Hover me to pause the countdown.' })}>Progress + Description</button>
+                  <button onClick={() => gooeyToast.info('Share link ready', { ...DEMO_DEFAULTS, showProgress: true, description: 'Your share link is ready to copy.', action: { label: 'Copy', onClick: () => navigator.clipboard.writeText('https://example.com/share/abc123'), successLabel: 'Copied!' } })}>Progress + Action</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="doc-section">
+              <div className="doc-section-label">
+                <div className="doc-number">17</div>
                 <h3>Spring Animation</h3>
               </div>
               <div className="doc-section-content">

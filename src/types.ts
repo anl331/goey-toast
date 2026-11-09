@@ -4,6 +4,9 @@ import type { AnimationPresetName } from './presets'
 
 export type GooeyToastType = 'default' | 'success' | 'error' | 'warning' | 'info'
 
+/** `true` = built-in tone, `false` = silent, string = audio file URL for every type, map = per-type URLs (missing types use the built-in tone). */
+export type GooeySoundOption = boolean | string | Partial<Record<GooeyToastType, string>>
+
 export interface GooeyToastTimings {
   displayDuration?: number
 }
@@ -60,6 +63,8 @@ export interface GooeyToastOptions {
   showTimestamp?: boolean
   onDismiss?: (id: string | number) => void
   onAutoClose?: (id: string | number) => void
+  /** Override the global `sound` setting for this toast. */
+  sound?: GooeySoundOption
 }
 
 export interface GooeyPromiseData<T> {
@@ -86,6 +91,8 @@ export interface GooeyPromiseData<T> {
   showTimestamp?: boolean
   onDismiss?: (id: string | number) => void
   onAutoClose?: (id: string | number) => void
+  /** Override the global `sound` setting for this toast. */
+  sound?: GooeySoundOption
 }
 
 export type GooeyToastPhase = 'loading' | 'default' | 'success' | 'error' | 'warning' | 'info'
@@ -108,7 +115,7 @@ export interface GooeyToasterProps {
   duration?: number
   gap?: number
   offset?: number | string
-  theme?: 'light' | 'dark'
+  theme?: 'light' | 'dark' | 'system'
   toastOptions?: Partial<ExternalToast>
   expand?: boolean
   closeButton?: boolean | 'top-left' | 'top-right'
@@ -124,4 +131,8 @@ export interface GooeyToasterProps {
   queueOverflow?: 'drop-oldest' | 'drop-newest'
   showProgress?: boolean
   showTimestamp?: boolean
+  /** Play a short synthesized tone per toast type (default false). */
+  sound?: GooeySoundOption
+  /** Sound volume from 0 to 1 (default 0.4). */
+  soundVolume?: number
 }

@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Toaster } from 'sonner'
 import type { GooeyToasterProps } from '../types'
 import { animationPresets } from '../presets'
-import { setGooeyPosition, setGooeyDir, setGooeySpring, setGooeyBounce, setGooeyVisibleToasts, setContainerHovered, setGooeySwipeToDismiss, setGooeyCloseOnEscape, setGooeyTheme, setGooeyMaxQueue, setGooeyQueueOverflow, setGooeyShowProgress, setGooeyCloseButton, setGooeyShowTimestamp } from '../context'
+import { setGooeyPosition, setGooeyDir, setGooeySpring, setGooeyBounce, setGooeyVisibleToasts, setContainerHovered, setGooeySwipeToDismiss, setGooeyCloseOnEscape, setGooeyTheme, setGooeyMaxQueue, setGooeyQueueOverflow, setGooeyShowProgress, setGooeyCloseButton, setGooeyShowTimestamp, setGooeySound, setGooeySoundVolume } from '../context'
+import { warmGooeySound } from '../sound'
 import { gooeyToast, _getMostRecentActiveId } from '../gooey-toast'
 import { AriaLiveAnnouncer } from './AriaLiveAnnouncer'
 
@@ -25,8 +26,10 @@ export function GooeyToaster({
   closeOnEscape = true,
   maxQueue = Infinity,
   queueOverflow = 'drop-oldest',
-  showProgress = false,
+  showProgress = true,
   showTimestamp = true,
+  sound = true,
+  soundVolume = 0.4,
 }: GooeyToasterProps) {
   const presetConfig = preset ? animationPresets[preset] : undefined
   const resolvedSpring = spring ?? presetConfig?.spring ?? true
@@ -40,7 +43,8 @@ export function GooeyToaster({
     setGooeyDir(dir ?? 'ltr')
   }, [dir])
 
-  useEffect(() => {
+  // Layout effect so the first toast already sees the right theme.
+  useLayoutEffect(() => {
     setGooeyTheme(theme)
   }, [theme])
 
@@ -100,12 +104,28 @@ export function GooeyToaster({
     setGooeyShowTimestamp(showTimestamp)
   }, [showTimestamp])
 
+  useLayoutEffect(() => {
+    setGooeySound(sound)
+    warmGooeySound(sound)
+  }, [sound])
+
+  useLayoutEffect(() => {
+    setGooeySoundVolume(soundVolume)
+  }, [soundVolume])
+
   // Detect hover on the Sonner container and broadcast to all GooeyToast instances.
   // Uses Sonner's `data-expanded` attribute (set per-toast <li>) as the hover signal
   // rather than raw mouseenter/mouseleave on the <ol>. This is more reliable because
   // Sonner manages it with onMouseEnter + onMouseMove + onMouseLeave, and it survives
   // <ol> remounts (all toasts dismissed then new ones appear).
+  const rootRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    // Sonner renders a persistent <section>; its <ol data-sonner-toaster> children come and go.
+    const section = root.querySelector('section') ?? root
+    const findOl = () => section.querySelector<HTMLElement>('[data-sonner-toaster]')
     let expandObs: MutationObserver | null = null
     let currentOl: HTMLElement | null = null
 
@@ -123,7 +143,7 @@ export function GooeyToaster({
       syncFromExpanded(ol)
     }
 
-    const el = document.querySelector<HTMLElement>('[data-sonner-toaster]')
+    const el = findOl()
     if (el) attach(el)
 
     // Re-discover if the <ol> is remounted (e.g. all toasts dismissed then new ones appear).
@@ -133,7 +153,7 @@ export function GooeyToaster({
       if (bodyRafId) return
       bodyRafId = requestAnimationFrame(() => {
         bodyRafId = 0
-        const found = document.querySelector<HTMLElement>('[data-sonner-toaster]')
+        const found = findOl()
         if (found) {
           attach(found)
         } else if (currentOl) {
@@ -143,7 +163,7 @@ export function GooeyToaster({
         }
       })
     })
-    bodyObs.observe(document.body, { childList: true, subtree: true })
+    bodyObs.observe(section, { childList: true })
 
     return () => {
       if (bodyRafId) cancelAnimationFrame(bodyRafId)
@@ -178,6 +198,7 @@ export function GooeyToaster({
 
   return (
     <>
+      <div ref={rootRef} style={{ display: 'contents' }}>
       <Toaster
         position={position}
         duration={duration}
@@ -191,6 +212,7 @@ export function GooeyToaster({
         visibleToasts={99}
         dir={dir}
       />
+      </div>
       <AriaLiveAnnouncer />
     </>
   )

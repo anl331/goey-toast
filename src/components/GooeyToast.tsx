@@ -1,10 +1,10 @@
-import { useRef, useState, useEffect, useLayoutEffect as useLayoutEffectOrig, useCallback, useMemo, type FC, type ReactNode } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect as useLayoutEffectOrig, useCallback, useMemo, useSyncExternalStore, type FC, type ReactNode } from 'react'
 import { motion, AnimatePresence, animate } from 'framer-motion'
 import { toast as sonnerToast } from 'sonner'
 import type { GooeyToastAction, GooeyToastClassNames, GooeyToastPhase, GooeyToastTimings, GooeyToastType } from '../types'
 import type { AnimationPresetName } from '../presets'
 import { animationPresets } from '../presets'
-import { getGooeyPosition, getGooeyDir, getGooeySpring, getGooeyBounce, getGooeySwipeToDismiss, getGooeyTheme, getGooeyShowProgress, getGooeyCloseButton, subscribeContainerHovered, getContainerHovered, getGooeyShowTimestamp } from '../context'
+import { getGooeyPosition, getGooeyDir, getGooeySpring, getGooeyBounce, getGooeySwipeToDismiss, subscribeGooeyTheme, getGooeyTheme, getGooeyThemeServerSnapshot, getGooeyShowProgress, getGooeyCloseButton, subscribeContainerHovered, getContainerHovered, getGooeyShowTimestamp } from '../context'
 import { DefaultIcon, SuccessIcon, ErrorIcon, WarningIcon, InfoIcon, SpinnerIcon } from '../icons'
 import { usePrefersReducedMotion } from '../usePrefersReducedMotion'
 import { styles } from './gooey-styles'
@@ -371,10 +371,10 @@ export const GooeyToast: FC<GooeyToastProps> = ({
   showProgress: showProgressProp,
   toastId,
 }) => {
-  const theme = getGooeyTheme()
+  const theme = useSyncExternalStore(subscribeGooeyTheme, getGooeyTheme, getGooeyThemeServerSnapshot)
   const closeButtonSetting = getGooeyCloseButton()
   const showCloseButton = closeButtonSetting !== false
-  const fillColor = fillColorProp ?? (theme === 'dark' ? '#1a1a1a' : '#ffffff')
+  const hasBorder = !!borderColor
   const position = getGooeyPosition()
   const dir = getGooeyDir()
   const posIsRight = position?.includes('right') ?? false
@@ -809,15 +809,13 @@ export const GooeyToast: FC<GooeyToastProps> = ({
   // Hover pauses the timer. On unhover, timer restarts with remaining time.
   const remainingRef = useRef<number | null>(null)
   const timerStartRef = useRef(0)
-  const progressDelayRef = useRef(0)
+  // Time the expanded body stays open before the pre-dismiss collapse starts.
+  // The progress bar runs over exactly this window, starting when the body opens.
+  const fullDelay = (timing?.displayDuration ?? DEFAULT_DISPLAY_DURATION)
+    - (prefersReducedMotion ? 0 : 330)
+    - (prefersReducedMotion ? 10 : 900)
   useEffect(() => {
     if (!showBody || actionSuccess || dismissing) return
-
-    const expandDelayMs = prefersReducedMotion ? 0 : (330)
-    const collapseMs = prefersReducedMotion ? 10 : ((0.9) * 1000)
-    const displayMs = timing?.displayDuration ?? DEFAULT_DISPLAY_DURATION
-    const fullDelay = displayMs - expandDelayMs - collapseMs
-    progressDelayRef.current = Math.max(fullDelay, 0)
     if (fullDelay <= 0) return
 
     // Don't start timer while hovered (individual or container) — pause and resume on unhover
@@ -1188,8 +1186,19 @@ export const GooeyToast: FC<GooeyToastProps> = ({
 
   // Memoize base position style so a new object isn't created every render
   const basePositionStyle = useMemo<React.CSSProperties>(
-    () => isCenter ? { margin: '0 auto' } : isRight ? { marginLeft: 'auto', transform: 'scaleX(-1)' } : {},
-    [isCenter, isRight],
+    () => {
+      const base: React.CSSProperties = isCenter ? { margin: '0 auto' } : isRight ? { marginLeft: 'auto', transform: 'scaleX(-1)' } : {}
+      // Per-toast color props set the public CSS vars inline on the wrapper, so they
+      // win over any --gooey-* a consumer declares higher up in the tree.
+      const vars: Record<string, string> = {}
+      if (fillColorProp) vars['--gooey-fill'] = fillColorProp
+      if (borderColor) {
+        vars['--gooey-border'] = borderColor
+        vars['--gooey-border-width'] = `${borderWidth ?? 1.5}px`
+      }
+      return { ...base, ...vars } as React.CSSProperties
+    },
+    [isCenter, isRight, fillColorProp, borderColor, borderWidth],
   )
 
   // Build wrapper style: merge position styles with swipe transform/opacity
@@ -1222,9 +1231,7 @@ export const GooeyToast: FC<GooeyToastProps> = ({
       >
         <path
           ref={pathRef}
-          fill={fillColor}
-          stroke={borderColor || 'none'}
-          strokeWidth={borderColor ? (borderWidth ?? 1.5) : 0}
+          className={styles.blobPath}
         />
       </svg>
 
@@ -1235,10 +1242,7 @@ export const GooeyToast: FC<GooeyToastProps> = ({
           aria-label="Close toast"
           type="button"
           style={{
-            background: fillColor,
-            borderColor: borderColor || 'transparent',
-            borderWidth: borderColor ? (borderWidth ?? 1.5) : 0,
-            boxShadow: borderColor ? 'none' : '0 1px 4px rgba(0, 0, 0, 0.2)',
+            ...(hasBorder ? { boxShadow: 'none' } : {}),
             ...(isCenter && closeButtonSetting !== 'top-right' ? { top: 6, left: -1 } : {}),
           }}
           onClick={(e) => {
@@ -1324,15 +1328,17 @@ export const GooeyToast: FC<GooeyToastProps> = ({
           )}
         </AnimatePresence>
 
-        {showProgress && (
+        {/* Mounted only once the body has expanded, so the shrink animation starts
+            when the toast opens and runs in sync with the dismiss timer. */}
+        {showProgress && showBody && !actionSuccess && fullDelay > 0 && (
           <div
             key={progressKey}
             className={`${styles.progressWrapper}${hovered || containerHovered ? ` ${styles.progressPaused}` : ''}`}
-            style={{ opacity: showBody && !actionSuccess ? 1 : 0 }}
+            data-testid="gooey-progress"
           >
             <div
               className={`${styles.progressBar} ${progressColorMap[effectivePhase]}`}
-              style={{ '--gooey-progress-duration': `${progressDelayRef.current || (timing?.displayDuration ?? DEFAULT_DISPLAY_DURATION)}ms` } as React.CSSProperties}
+              style={{ '--gooey-progress-duration': `${fullDelay}ms` } as React.CSSProperties}
             />
           </div>
         )}

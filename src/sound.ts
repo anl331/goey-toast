@@ -1,5 +1,5 @@
 import { getGooeySound, getGooeySoundVolume } from './context'
-import type { GooeyToastType } from './types'
+import type { GooeyToastType, GooeySoundOption } from './types'
 
 // [frequency Hz, start offset s, duration s]
 type Note = [number, number, number]
@@ -17,6 +17,8 @@ const ATTACK = 0.008
 
 let _ctx: AudioContext | null = null
 let _lastPlay = -Infinity
+// Decoded buffers per URL; a failed load is cached as null so it isn't refetched.
+const _buffers = new Map<string, Promise<AudioBuffer | null>>()
 
 function getContext(): AudioContext | null {
   if (_ctx) return _ctx
@@ -32,16 +34,70 @@ function getContext(): AudioContext | null {
 export function _resetSound() {
   _ctx = null
   _lastPlay = -Infinity
+  _buffers.clear()
+}
+
+function loadBuffer(ctx: AudioContext, url: string): Promise<AudioBuffer | null> {
+  let p = _buffers.get(url)
+  if (!p) {
+    p = fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('bad response'))))
+      .then((data) => ctx.decodeAudioData(data))
+      .catch(() => null)
+    _buffers.set(url, p)
+  }
+  return p
+}
+
+/** Fetch and decode sound files ahead of time so the first play is instant. Never throws. */
+export function preloadGooeySounds(urls: string[]) {
+  try {
+    const ctx = getContext()
+    if (ctx) urls.forEach((u) => void loadBuffer(ctx, u))
+  } catch { /* best-effort */ }
+}
+
+function playTone(ctx: AudioContext, type: GooeyToastType, volume: number) {
+  const peak = Math.max(volume * 0.25, 0.0001)
+  const t0 = ctx.currentTime
+  for (const [freq, offset, dur] of NOTES[type]) {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    const start = t0 + offset
+    const end = start + dur
+    gain.gain.setValueAtTime(0.0001, start)
+    gain.gain.linearRampToValueAtTime(peak, start + ATTACK)
+    gain.gain.exponentialRampToValueAtTime(0.0001, end)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(start)
+    osc.stop(end + 0.02)
+  }
+}
+
+function playBuffer(ctx: AudioContext, buffer: AudioBuffer, volume: number) {
+  const src = ctx.createBufferSource()
+  const gain = ctx.createGain()
+  src.buffer = buffer
+  gain.gain.value = volume
+  src.connect(gain)
+  gain.connect(ctx.destination)
+  src.start()
 }
 
 /**
- * Play the notification tone for a toast type. `override` is the per-toast
+ * Play the notification sound for a toast type. `override` is the per-toast
  * `sound` option; when undefined the global `GooeyToaster sound` setting applies.
- * Never throws. Skipped while the document is hidden and throttled to one play per 80ms.
+ * A URL (or per-type URL map) plays that file; if it can't be loaded or decoded
+ * the built-in tone plays instead. Never throws. Skipped while the document is
+ * hidden and throttled to one play per 80ms.
  */
-export function playGooeySound(type: GooeyToastType, override?: boolean) {
+export function playGooeySound(type: GooeyToastType, override?: GooeySoundOption) {
   try {
-    if (!(override ?? getGooeySound())) return
+    const setting = override ?? getGooeySound()
+    if (!setting) return
     if (typeof document !== 'undefined' && document.hidden) return
     const now = Date.now()
     if (now - _lastPlay < MIN_GAP_MS) return
@@ -51,23 +107,16 @@ export function playGooeySound(type: GooeyToastType, override?: boolean) {
 
     if (ctx.state === 'suspended') ctx.resume().catch(() => {})
 
-    const peak = Math.max(getGooeySoundVolume() * 0.25, 0.0001)
-    const t0 = ctx.currentTime
-    for (const [freq, offset, dur] of NOTES[type]) {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.value = freq
-      const start = t0 + offset
-      const end = start + dur
-      gain.gain.setValueAtTime(0.0001, start)
-      gain.gain.linearRampToValueAtTime(peak, start + ATTACK)
-      gain.gain.exponentialRampToValueAtTime(0.0001, end)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start(start)
-      osc.stop(end + 0.02)
-    }
+    const volume = getGooeySoundVolume()
+    const url = typeof setting === 'string' ? setting : typeof setting === 'object' ? setting[type] : undefined
+    if (!url) return playTone(ctx, type, volume)
+
+    loadBuffer(ctx, url).then((buffer) => {
+      try {
+        if (buffer) playBuffer(ctx, buffer, volume)
+        else playTone(ctx, type, volume)
+      } catch { /* best-effort */ }
+    })
   } catch {
     /* audio is best-effort; never break toasts */
   }

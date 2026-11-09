@@ -9,6 +9,7 @@ import type {
   GooeyPromiseData,
   GooeyToastPhase,
   GooeyToastType,
+  GooeySoundOption,
   GooeyToastAction,
   GooeyToastClassNames,
   GooeyToastTimings,
@@ -47,7 +48,7 @@ const _toastCallbacks = new Map<string | number, {
 const _autoCloseFlags = new Set<string | number>()
 const _manualDismissFlags = new Set<string | number>()
 // Per-toast `sound` overrides, so in-place type updates honor them.
-const _soundOverrides = new Map<string | number, boolean>()
+const _soundOverrides = new Map<string | number, GooeySoundOption>()
 
 /** @internal Mark a toast as being auto-closed (timer-based dismiss). */
 export function _markAutoClose(id: string | number) {

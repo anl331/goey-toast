@@ -19,10 +19,12 @@ vi.mock('sonner', () => ({
 import { GooeyToaster } from '../components/GooeyToaster'
 import { gooeyToast, _resetQueue } from '../gooey-toast'
 import { setGooeySound } from '../context'
-import { playGooeySound, _resetSound } from '../sound'
+import { playGooeySound, preloadGooeySounds, _resetSound } from '../sound'
 
 const created: number[] = [] // frequencies of created oscillators
 let ctxCount = 0
+const sources: any[] = []
+const fetchMock = vi.fn()
 let state = 'running'
 const resume = vi.fn(() => Promise.resolve())
 
@@ -45,6 +47,12 @@ class MockAudioContext {
       },
     })
   }
+  decodeAudioData = vi.fn(async (b: ArrayBuffer) => ({ decoded: b.byteLength }))
+  createBufferSource() {
+    const s: any = { buffer: null, connect: vi.fn(), start: vi.fn() }
+    sources.push(s)
+    return s
+  }
   createGain() {
     const p = { setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() }
     return { gain: p, connect: vi.fn() }
@@ -55,6 +63,10 @@ beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(1_000_000)
   created.length = 0
+  sources.length = 0
+  fetchMock.mockReset()
+  fetchMock.mockImplementation(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }))
+  vi.stubGlobal('fetch', fetchMock)
   ctxCount = 0
   state = 'running'
   resume.mockClear()
@@ -66,6 +78,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+  vi.unstubAllGlobals()
   delete (window as any).AudioContext
 })
 
@@ -191,5 +204,72 @@ describe('toast sounds', () => {
     ;(window as any).AudioContext = function () { throw new Error('nope') }
     setGooeySound(true)
     expect(() => playGooeySound('success')).not.toThrow()
+  })
+
+  describe('custom sound files', () => {
+    const flush = () => act(async () => { for (let i = 0; i < 6; i++) await Promise.resolve() })
+
+    it('string URL plays the decoded buffer for every type', async () => {
+      setGooeySound('/a.wav')
+      playGooeySound('error')
+      await flush()
+      expect(fetchMock).toHaveBeenCalledWith('/a.wav')
+      expect(sources).toHaveLength(1)
+      expect(sources[0].buffer).toEqual({ decoded: 8 })
+      expect(sources[0].start).toHaveBeenCalled()
+      expect(created).toHaveLength(0)
+    })
+
+    it('map uses file for listed types and synth for others', async () => {
+      setGooeySound({ success: '/s.wav' })
+      playGooeySound('success')
+      await flush()
+      expect(sources).toHaveLength(1)
+      tick()
+      playGooeySound('error')
+      await flush()
+      expect(sources).toHaveLength(1)
+      expect(created).toEqual([311.13, 233.08])
+    })
+
+    it('fetches each URL once', async () => {
+      setGooeySound('/a.wav')
+      playGooeySound('info')
+      await flush()
+      tick()
+      playGooeySound('info')
+      await flush()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(sources).toHaveLength(2)
+    })
+
+    it('falls back to the synth tone when fetch fails, without throwing', async () => {
+      fetchMock.mockRejectedValue(new Error('net'))
+      setGooeySound('/bad.wav')
+      expect(() => playGooeySound('success')).not.toThrow()
+      await flush()
+      expect(sources).toHaveLength(0)
+      expect(created).toEqual([659.25, 880])
+    })
+
+    it('per-toast URL overrides global, and false silences a global URL', async () => {
+      gooeyToast.success('hi', { sound: '/own.wav' })
+      await flush()
+      expect(fetchMock).toHaveBeenCalledWith('/own.wav')
+      expect(sources).toHaveLength(1)
+
+      tick()
+      setGooeySound('/g.wav')
+      gooeyToast.success('hi', { sound: false })
+      await flush()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('preloadGooeySounds fetches without playing', async () => {
+      preloadGooeySounds(['/p.wav'])
+      await flush()
+      expect(fetchMock).toHaveBeenCalledWith('/p.wav')
+      expect(sources).toHaveLength(0)
+    })
   })
 })

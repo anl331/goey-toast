@@ -809,15 +809,13 @@ export const GooeyToast: FC<GooeyToastProps> = ({
   // Hover pauses the timer. On unhover, timer restarts with remaining time.
   const remainingRef = useRef<number | null>(null)
   const timerStartRef = useRef(0)
-  const progressDelayRef = useRef(0)
+  // Time the expanded body stays open before the pre-dismiss collapse starts.
+  // The progress bar runs over exactly this window, starting when the body opens.
+  const fullDelay = (timing?.displayDuration ?? DEFAULT_DISPLAY_DURATION)
+    - (prefersReducedMotion ? 0 : 330)
+    - (prefersReducedMotion ? 10 : 900)
   useEffect(() => {
     if (!showBody || actionSuccess || dismissing) return
-
-    const expandDelayMs = prefersReducedMotion ? 0 : (330)
-    const collapseMs = prefersReducedMotion ? 10 : ((0.9) * 1000)
-    const displayMs = timing?.displayDuration ?? DEFAULT_DISPLAY_DURATION
-    const fullDelay = displayMs - expandDelayMs - collapseMs
-    progressDelayRef.current = Math.max(fullDelay, 0)
     if (fullDelay <= 0) return
 
     // Don't start timer while hovered (individual or container) — pause and resume on unhover
@@ -1330,15 +1328,17 @@ export const GooeyToast: FC<GooeyToastProps> = ({
           )}
         </AnimatePresence>
 
-        {showProgress && (
+        {/* Mounted only once the body has expanded, so the shrink animation starts
+            when the toast opens and runs in sync with the dismiss timer. */}
+        {showProgress && showBody && !actionSuccess && fullDelay > 0 && (
           <div
             key={progressKey}
             className={`${styles.progressWrapper}${hovered || containerHovered ? ` ${styles.progressPaused}` : ''}`}
-            style={{ opacity: showBody && !actionSuccess ? 1 : 0 }}
+            data-testid="gooey-progress"
           >
             <div
               className={`${styles.progressBar} ${progressColorMap[effectivePhase]}`}
-              style={{ '--gooey-progress-duration': `${progressDelayRef.current || (timing?.displayDuration ?? DEFAULT_DISPLAY_DURATION)}ms` } as React.CSSProperties}
+              style={{ '--gooey-progress-duration': `${fullDelay}ms` } as React.CSSProperties}
             />
           </div>
         )}

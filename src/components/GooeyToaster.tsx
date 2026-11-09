@@ -40,7 +40,8 @@ export function GooeyToaster({
     setGooeyDir(dir ?? 'ltr')
   }, [dir])
 
-  useEffect(() => {
+  // Layout effect so the first toast already sees the right theme.
+  useLayoutEffect(() => {
     setGooeyTheme(theme)
   }, [theme])
 

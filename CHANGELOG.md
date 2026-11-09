@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - 0.6.0
+
+### Added
+
+- `GooeyToaster` `theme="system"`: follows `prefers-color-scheme` and updates live (fixes [#22](https://github.com/anl331/goey-toast/issues/22))
+- Public CSS variables for theming (`--gooey-fill`, `--gooey-border`, `--gooey-border-width`, `--gooey-title-*`, `--gooey-description`, `--gooey-timestamp`, `--gooey-action-*`, `--gooey-progress-*`, `--gooey-close-fg`). Declare them anywhere in the tree (`:root`, `.dark`, ...) to override the built-in colors; works with Tailwind / shadcn tokens
+- `forced-colors: active` styles for Windows High Contrast
+- shadcn registry wrapper maps the variables to shadcn tokens, follows the `.dark` class, and defaults to `theme="system"`
+
+### Changed
+
+- Theme is now a subscribable store: already-mounted toasts restyle when the theme changes (previously only toasts created afterwards could pick it up, and the first toast could render before the theme was set)
+- The blob fill/stroke moved from SVG attributes into CSS; `fillColor` / `borderColor` / `borderWidth` now set `--gooey-fill` / `--gooey-border` / `--gooey-border-width` on the toast wrapper (same behavior)
+- Corrected the shadcn registry docs (center positions, theme values, missing props)
 
 ### Fixed
 

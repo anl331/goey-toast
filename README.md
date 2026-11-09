@@ -230,7 +230,7 @@ Props for the `<GooeyToaster />` component.
 | `duration`   | `number`                              | --               | Default display duration in ms                |
 | `gap`        | `number`                              | `14`             | Gap between stacked toasts (px)               |
 | `offset`     | `number \| string`                    | `'24px'`         | Distance from screen edge                     |
-| `theme`      | `'light' \| 'dark'`                   | `'light'`        | Color theme                                   |
+| `theme`      | `'light' \| 'dark' \| 'system'`    | `'light'`        | Color theme; `'system'` follows the OS and updates live |
 | `toastOptions` | `Partial<ExternalToast>`            | --               | Default options passed to Sonner              |
 | `spring`     | `boolean`                             | `true`           | Enable spring/bounce animations globally      |
 | `bounce`     | `number`                              | `0.4`            | Spring intensity: `0.05` (subtle) to `0.8` (dramatic) |
@@ -402,11 +402,46 @@ gooeyToast.success('Saved', { bounce: 0.8 })
 
 The `bounce` value (0.05 to 0.8) controls spring stiffness, damping, and squish magnitude together so you get a consistent feel from one number.
 
-### Dark Mode
+### Theming (light, dark, system)
 
 ```tsx
-<GooeyToaster theme="dark" />
+<GooeyToaster theme="dark" />    // always dark
+<GooeyToaster theme="system" />  // follows prefers-color-scheme, updates live
 ```
+
+Theme changes restyle toasts that are already on screen, not just new ones. With `next-themes` and similar, pass the resolved theme (`resolvedTheme`) or use `"system"`.
+
+For full control, override the public CSS variables. The library only sets private `--_gooey-*` values and reads `var(--gooey-*, <default>)`, so your variables win when declared anywhere in the tree (`:root`, `.dark`, a parent element):
+
+| Variable | Controls |
+| -------- | -------- |
+| `--gooey-fill` | Toast background (blob and close button) |
+| `--gooey-border`, `--gooey-border-width` | Border color and width |
+| `--gooey-title-{default,success,error,warning,info,loading}` | Title color per phase |
+| `--gooey-description`, `--gooey-timestamp` | Description and timestamp text |
+| `--gooey-action-{default,success,error,warning,info}-{bg,fg,bg-hover,bg-active}` | Action button colors per phase |
+| `--gooey-progress-{default,success,error,warning,info}`, `--gooey-progress-track` | Progress bar and its track |
+| `--gooey-close-fg` | Close button icon color |
+
+The `fillColor`, `borderColor` and `borderWidth` toast options still work and take precedence over the variables for that toast.
+
+Tailwind / shadcn example, mapping to your design tokens (follows the `.dark` class, no `theme` prop needed):
+
+```css
+.gooey-wrapper {
+  --gooey-fill: var(--popover);
+  --gooey-border: var(--border);
+  --gooey-border-width: 1px;
+  --gooey-title-default: var(--popover-foreground);
+  --gooey-description: var(--muted-foreground);
+}
+```
+
+The shadcn registry install (`npx shadcn@latest add .../goey-toaster.json`) ships with this mapping already applied.
+
+Windows High Contrast / forced-colors mode is handled with system colors.
+
+> Variables solve color theming. Non-color utility classes passed via `classNames` (`rounded-*`, `p-*`, ...) may still lose to the library's unlayered CSS depending on import order and Tailwind v4 layers.
 
 ### RTL Support
 

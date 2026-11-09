@@ -4,14 +4,67 @@ let _position: ToasterProps['position'] = 'bottom-right'
 let _dir: 'ltr' | 'rtl' = 'ltr'
 let _spring: boolean = true
 let _bounce: number | undefined = undefined
-let _theme: 'light' | 'dark' = 'light'
 
-export function setGooeyTheme(theme: 'light' | 'dark') {
-  _theme = theme
+// ---------------------------------------------------------------------------
+// Theme — a tiny subscribable store so mounted toasts re-render live when the
+// theme (or the OS color scheme, for 'system') changes.
+// ---------------------------------------------------------------------------
+export type GooeyThemeSetting = 'light' | 'dark' | 'system'
+export type GooeyResolvedTheme = 'light' | 'dark'
+
+const DARK_QUERY = '(prefers-color-scheme: dark)'
+
+let _themeSetting: GooeyThemeSetting = 'light'
+let _resolvedTheme: GooeyResolvedTheme = 'light'
+let _mql: MediaQueryList | null = null
+const _themeSubs: Set<() => void> = new Set()
+
+function hasMatchMedia(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
 }
 
-export function getGooeyTheme(): 'light' | 'dark' {
-  return _theme
+function resolveTheme(setting: GooeyThemeSetting): GooeyResolvedTheme {
+  if (setting !== 'system') return setting
+  return hasMatchMedia() && window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light'
+}
+
+function updateResolvedTheme() {
+  const next = resolveTheme(_themeSetting)
+  if (next === _resolvedTheme) return
+  _resolvedTheme = next
+  _themeSubs.forEach(cb => cb())
+}
+
+function onSystemThemeChange() {
+  updateResolvedTheme()
+}
+
+export function setGooeyTheme(theme: GooeyThemeSetting) {
+  _themeSetting = theme
+  if (theme === 'system' && hasMatchMedia()) {
+    if (!_mql) {
+      _mql = window.matchMedia(DARK_QUERY)
+      _mql.addEventListener('change', onSystemThemeChange)
+    }
+  } else if (_mql) {
+    _mql.removeEventListener('change', onSystemThemeChange)
+    _mql = null
+  }
+  updateResolvedTheme()
+}
+
+/** Returns the resolved theme ('system' is resolved to 'light' or 'dark'). */
+export function getGooeyTheme(): GooeyResolvedTheme {
+  return _resolvedTheme
+}
+
+export function getGooeyThemeServerSnapshot(): GooeyResolvedTheme {
+  return 'light'
+}
+
+export function subscribeGooeyTheme(cb: () => void): () => void {
+  _themeSubs.add(cb)
+  return () => { _themeSubs.delete(cb) }
 }
 
 export function setGooeyPosition(position: ToasterProps['position']) {

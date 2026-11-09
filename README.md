@@ -21,11 +21,14 @@
 - Pre-dismiss collapse animation
 - In-place toast updates via `gooeyToast.update()`
 - Dismiss by type filter: `gooeyToast.dismiss({ type: 'error' })`
-- Dark mode and RTL layout support
+- Light, dark and `system` themes that update live, plus RTL layout support
+- Themeable with CSS variables (`--gooey-*`) — works with Tailwind and shadcn/ui tokens
+- Notification sounds (on by default): built-in tones per type or your own audio files
+- Windows High Contrast (`forced-colors`) support
 - Animation presets: smooth, bouncy, subtle, snappy
 - Timestamp display on expanded toasts with optional `showTimestamp` toggle
 - Close button with configurable position (`top-left` / `top-right`)
-- Countdown progress bar with hover-pause and re-expand
+- Countdown progress bar (on by default) with hover-pause and re-expand
 - Keyboard dismiss (Escape) and swipe-to-dismiss on mobile
 - Toast queue with configurable overflow strategy
 - Dismiss callbacks: `onDismiss` and `onAutoClose`
@@ -184,7 +187,7 @@ Options passed as the second argument to `gooeyToast()` and type-specific method
 | `spring`      | `boolean`            | Enable spring/bounce animations (default `true`) |
 | `bounce`      | `number`             | Spring intensity from `0.05` (subtle) to `0.8` (dramatic), default `0.4` |
 | `showTimestamp` | `boolean`         | Show/hide timestamp in toast header/body (default `true`) |
-| `showProgress`| `boolean`            | Show countdown progress bar                      |
+| `showProgress`| `boolean`            | Show countdown progress bar (default: global setting, `true`) |
 | `sound`       | `boolean \| string \| Record` | Override the global `sound` setting for this toast |
 | `onDismiss`   | `(id) => void`       | Called when toast is dismissed (any reason)       |
 | `onAutoClose` | `(id) => void`       | Called only on timer-based auto-dismiss           |
@@ -576,6 +579,9 @@ export { gooeyToast } from 'goey-toast'
 // Animation presets
 export { animationPresets } from 'goey-toast'
 
+// Sounds: fetch custom sound files ahead of time
+export { preloadGooeySounds } from 'goey-toast'
+
 // Types
 export type {
   GooeyToastOptions,
@@ -585,6 +591,7 @@ export type {
   GooeyToastClassNames,
   GooeyToastTimings,
   GooeyToastUpdateOptions,
+  GooeySoundOption,
   DismissFilter,
   AnimationPreset,
   AnimationPresetName,
@@ -595,10 +602,11 @@ export type {
 
 goey-toast works in all modern browsers that support:
 
-- CSS Modules
+- CSS custom properties
 - SVG path animations
 - ResizeObserver
 - `framer-motion` (Chrome, Firefox, Safari, Edge)
+- Web Audio API for sounds (optional; toasts stay silent where it is unavailable)
 
 ## See Also
 
